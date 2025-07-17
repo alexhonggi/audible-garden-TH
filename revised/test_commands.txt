@@ -1,0 +1,81 @@
+# `fixed_turntable.py` 기능 테스트를 위한 명령어 예시
+
+이 파일은 `fixed_turntable.py`의 주요 기능들을 독립적으로 테스트하고 검증하는 데 사용할 수 있는 다양한 명령어 조합을 제공합니다.
+
+---
+
+### 1. 기본 기능 테스트
+
+#### 목적
+가장 기본적인 원형 ROI 모드가 정상적으로 작동하는지 확인합니다. 스핀들 자동 감지, 반지름 스캔라인 생성, 기본 OSC 전송 등을 테스트합니다.
+
+#### 명령어
+```bash
+conda activate garden && python fixed_turntable.py --roi_mode circular
+```
+
+---
+
+### 2. 실제 회전 속도(RPM) 감지 테스트
+
+#### 목적
+`--detect_rpm y` 옵션을 사용하여, 카메라에 보이는 실제 회전하는 물체(예: LP판, 직접 만든 패턴 종이)의 회전 속도를 올바르게 감지하는지 테스트합니다.
+
+#### 명령어
+```bash
+conda activate garden && python fixed_turntable.py --detect_rpm y --roi_mode circular
+```
+- **테스트 방법**: 일정한 속도로 회전하는 물체를 카메라 앞에 두고, 화면에 표시되는 `Detected: X.X` RPM 값이 실제와 유사하게 측정되는지 확인합니다. 'd' 키를 눌러 기준점을 다시 설정해 볼 수 있습니다.
+
+---
+
+### 3. 악보 녹화 및 저장 테스트
+
+#### 목적
+첫 바퀴 회전 데이터를 올바르게 녹화하고, `images` 폴더 안에 세션별로(`날짜_모드_스케일_RPM` 형식) 폴더를 생성하여 `score.json`, `score.png`, `score.npy` 파일을 정확히 저장하는지 확인합니다.
+
+#### 명령어
+```bash
+conda activate garden && python fixed_turntable.py --record_score y --rpm 4 --roi_mode circular
+```
+- **테스트 방법**: 프로그램 실행 후 한 바퀴(4 RPM 기준 15초)가 지날 때까지 기다립니다. "모든 악보 저장 절차가 완료되었습니다." 메시지가 출력된 후, `images/` 폴더에 결과물이 생성되었는지 확인합니다.
+
+---
+
+### 4. 저장된 악보 재생 테스트
+
+#### 목적
+`--load_score` 옵션을 사용하여 3번에서 저장한 세션 폴더를 지정했을 때, 프로그램이 시작부터 '재생 모드'로 진입하고 해당 악보를 올바르게 연주하는지 테스트합니다.
+
+#### 명령어
+```bash
+# "images/{세션폴더명}" 부분은 실제 생성된 폴더 이름으로 변경해야 합니다.
+conda activate garden && python fixed_turntable.py --load_score "images/20250710_103000_circular_CPentatonic_4.0rpm"
+```
+- **테스트 방법**: OSC 수신 클라이언트(예: Ableton Live)를 켜고, 지정된 악보의 MIDI 데이터가 OSC를 통해 전송되는지 확인합니다.
+
+---
+
+### 5. Zodiac 모드 (각도 기반) 동작 테스트
+
+#### 목적
+Zodiac 모드가 더 이상 시간 기반이 아닌, 회전 각도에 따라 정확하게 변경되는지 확인합니다. 사각형 모드에서 스캔 영역이 부드럽게 위아래로 움직이는 것을 통해 직관적으로 확인할 수 있습니다.
+
+#### 명령어
+```bash
+conda activate garden && python fixed_turntable.py --roi_mode rectangular --manual_roi n --rpm 10
+```
+- **테스트 방법**: RPM을 10 정도로 높게 설정하면, 'ROI Detail' 창에서 빨간색으로 표시되는 스캔 영역이 6초에 한 번씩 부드럽게 위에서 아래로 이동하는 것을 볼 수 있습니다.
+
+---
+
+### 6. 저사양 환경 성능 테스트
+
+#### 목적
+해상도를 낮추고 프레임 처리 간격(`skip`)을 늘려서, CPU 점유율을 줄이고 저사양 컴퓨터에서도 프로그램이 안정적으로 구동되는지 테스트합니다.
+
+#### 명령어
+```bash
+conda activate garden && python fixed_turntable.py --resolution 640x480 --skip 60 --roi_mode circular
+```
+- **테스트 방법**: 시스템의 작업 관리자나 활성 상태 보기 등을 통해 CPU 사용량이 유의미하게 감소했는지 확인합니다. 

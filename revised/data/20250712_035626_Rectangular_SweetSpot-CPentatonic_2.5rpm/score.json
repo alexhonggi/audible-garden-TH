@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "rpm": 2.5,
+    "fps": 30.0,
+    "rotation_time": 24.0,
+    "frames_per_rotation": 720,
+    "created_at": "2025-07-12T03:56:26.014015",
+    "scale": "SweetSpot-CPentatonic",
+    "roi_mode": "Circular"
+  },
+  "rotations": [
+    {
+      "frame_start": 0,
+      "notes": [],
+      "zodiac_sections": [],
+      "raw_rois": []
+    }
+  ]
+}

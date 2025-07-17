@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSCameraUseContinuityCameraDeviceType</key>
+    <true/>
+    <key>CFBundleIdentifier</key>
+    <string>com.audiblegarden.turntable</string>
+    <key>CFBundleName</key>
+    <string>Audible Garden Turntable</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>NSCameraUsageDescription</key>
+    <string>This app uses the camera to capture video for audio-visual processing and MIDI generation.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app may use the microphone for audio processing.</string>
+</dict>
+</plist> 
