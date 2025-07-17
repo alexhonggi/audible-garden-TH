@@ -1,6 +1,6 @@
 {
   "midi_generation": {
-    "sampling_mode": "importance",
+    "sampling_mode": "random",
     "note_count_max": 5,
     "fixed_duration_seconds": 1.5,
     "velocity_range": [32, 127],

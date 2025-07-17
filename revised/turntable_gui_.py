@@ -241,7 +241,19 @@ class TurntableGUI(QMainWindow):
         mode_group.setLayout(mode_layout)
         self.controls_layout.addWidget(mode_group)
 
-        # 4. 악보 컨트롤 그룹
+        # 4. 전송 제어 그룹
+        transmission_group = QGroupBox("전송 제어")
+        transmission_layout = QVBoxLayout()
+        self.transmission_interval_label = QLabel("전송 간격")
+        self.transmission_interval_combo = QComboBox()
+        self.transmission_interval_combo.addItems(["1프레임마다", "5프레임마다", "10프레임마다", "30프레임마다", "60프레임마다"])
+        self.transmission_interval_combo.setCurrentText("30프레임마다")  # 기본값
+        transmission_layout.addWidget(self.transmission_interval_label)
+        transmission_layout.addWidget(self.transmission_interval_combo)
+        transmission_group.setLayout(transmission_layout)
+        self.controls_layout.addWidget(transmission_group)
+
+        # 5. 악보 컨트롤 그룹
         score_group = QGroupBox("악보 제어")
         score_layout = QVBoxLayout()
         self.record_checkbox = QCheckBox("첫 바퀴 악보 녹음")
@@ -265,6 +277,22 @@ class TurntableGUI(QMainWindow):
         self.load_button.clicked.connect(self.load_score_session)
         self.playback_button.clicked.connect(self.toggle_playback_mode)
         self.manual_roi_button.toggled.connect(self.toggle_roi_setting)
+
+    def get_transmission_interval(self):
+        """전송 간격 설정을 프레임 수로 변환합니다."""
+        interval_text = self.transmission_interval_combo.currentText()
+        if "1프레임마다" in interval_text:
+            return 1
+        elif "5프레임마다" in interval_text:
+            return 5
+        elif "10프레임마다" in interval_text:
+            return 10
+        elif "30프레임마다" in interval_text:
+            return 30
+        elif "60프레임마다" in interval_text:
+            return 60
+        else:
+            return 30  # 기본값
 
     def on_camera_ready(self, fps, resolution):
         """카메라가 성공적으로 초기화되었을 때 호출됩니다."""
@@ -569,6 +597,10 @@ class TurntableGUI(QMainWindow):
         # --- 3. MIDI 데이터 생성 및 OSC 전송 ---
         midi_notes, velocities, durations = [], [], []
         
+        # 전송 간격 체크
+        transmission_interval = self.get_transmission_interval()
+        should_transmit = (self.frame_count % transmission_interval == 0)
+        
         if self.is_playback_mode:
             # 🎵 재생 모드
             if self.score_recorder and self.score_recorder.is_loaded:
@@ -581,9 +613,10 @@ class TurntableGUI(QMainWindow):
         elif roi_gray.size > 0:
             midi_notes, velocities, durations = generate_midi_from_roi(roi_gray, self.config)
 
-        if self.osc_client and len(midi_notes) > 0:
-            # duration 단위를 초(float)에서 ms(int)로 변환하여 전송
-            durations_ms = [int(d * 1000) for d in durations]
+        # 전송 간격에 맞춰서만 OSC 전송
+        if self.osc_client and len(midi_notes) > 0 and should_transmit:
+            # duration을 int로 변환하여 전송 (이미 밀리초 단위)
+            durations_ms = [int(d) for d in durations]
             send_midi(self.osc_client, len(midi_notes), midi_notes, velocities, durations_ms)
             
             self.transmission_count += 1
@@ -711,8 +744,10 @@ def run_cli(args):
         
         if roi_gray.size > 0:
             midi_notes, velocities, durations = generate_midi_from_roi(roi_gray, config)
-            if osc_client and len(midi_notes) > 0:
-                durations_ms = [int(d * 1000) for d in durations]
+            # CLI 모드에서도 전송 간격 체크
+            should_transmit = (frame_count % args.transmission_interval == 0)
+            if osc_client and len(midi_notes) > 0 and should_transmit:
+                durations_ms = [int(d) for d in durations]
                 send_midi(osc_client, len(midi_notes), midi_notes, velocities, durations_ms)
                 transmission_count += 1
                 if score_recorder.is_recording:
@@ -757,6 +792,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str, default='config.json', help='[CLI] 사용할 설정 파일의 경로를 지정합니다.')
     parser.add_argument('--rpm', type=float, default=2.5, help='[CLI] 사용할 RPM(분당 회전 수)을 지정합니다.')
     parser.add_argument('--roi-mode', type=str, choices=['Circular', 'Rectangular'], default='Circular', help='[CLI] 사용할 ROI(관심 영역) 모드를 지정합니다.')
+    parser.add_argument('--transmission-interval', type=int, default=30, help='[CLI] 전송 간격을 프레임 수로 지정합니다. (기본값: 30)')
     parser.add_argument('--record', action='store_true', help='[CLI] 첫 바퀴를 녹음하여 악보 파일로 저장합니다.')
     parser.add_argument('--exit-on-record-complete', action='store_true', help='[CLI] 악보 녹음이 완료되면 프로그램을 자동으로 종료합니다.')
 

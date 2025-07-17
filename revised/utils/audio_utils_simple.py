@@ -219,8 +219,10 @@ def generate_midi_from_roi(roi_gray, config):
         note_index = np.abs(np.array(available_scale_notes) - piano_notes[i]).argmin()
         mapped_note = available_scale_notes[note_index]
 
-        # 밝기를 벨로시티로 변환
-        velocity = np.interp(magnitudes[i], [100, 255], vel_range)
+        # 밝기 반전 + 비선형 매핑 (어두울수록 큰 velocity)
+        inverted_brightness = 255 - magnitudes[i]
+        normalized = (inverted_brightness / 255.0) ** 0.5  # 제곱근으로 비선형화
+        velocity = normalized * (vel_range[1] - vel_range[0]) + vel_range[0]
         
         # 벨로시티가 임계값을 넘으면 후보에 추가
         if velocity >= vel_threshold:
@@ -245,7 +247,7 @@ def generate_midi_from_roi(roi_gray, config):
     # --- 5. 최종 데이터 생성 ---
     output_notes = [int(n[0]) for n in final_notes]
     output_velocities = [int(n[1]) for n in final_notes]
-    output_durations = [random.uniform(500, 3000) for i in range(len(output_notes))]
+    output_durations = [random.randint(500, 3000) for i in range(len(output_notes))]
     # output_durations = [fixed_duration] * len(output_notes) # 고정된 duration 적용
 
     return output_notes, output_velocities, output_durations
