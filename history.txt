@@ -1,0 +1,16 @@
+  360  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30\n
+  361  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30\n
+  362  conda activate garden
+  363  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  364  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  365  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  366  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  367  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  368  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  369  ls
+  370  cd ..
+  371  git status
+  372  git add .
+  373  git commit -m "txlab version"
+  374  git push
+  375  history

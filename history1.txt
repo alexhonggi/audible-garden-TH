@@ -1,0 +1,376 @@
+    1  conda activate stone
+    2  ls
+    3  clear
+    4  clear
+    5  conda activate stone
+    6  python tgui_lite.py
+    7  conda env list
+    8  conda activate stone
+    9  /Users/audible-garden/Desktop/run.sh 
+   10  chmod +x /Users/audible-garden/Desktop/run.sh
+   11  /Users/audible-garden/Desktop/run.sh 
+   12  conda activate stone; cd /Users/audible-garden/Desktop/audible-garden-TH; python tgui_lite.py
+   13  conda deactivate
+   14  cd ..
+   15  ls
+   16  cd ..
+   17  ls
+   18  cd ..
+   19  ls
+   20  brew install htop
+   21  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   22   echo >> /Users/audible-garden/.zprofile\n    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/audible-garden/.zprofile\n    eval "$(/opt/homebrew/bin/brew shellenv)"
+   23  brew help
+   24  brew install htop
+   25  sudo htop
+   26  brew uninstall hto
+   27  brew uninstall htop
+   28  brew install mactop\n
+   29  sudo mactop
+   30  sudo mactop
+   31  conda activate stone
+   32  ls -la ~/.config/conda/
+   33  conda info --envs
+   34  stat ~/.config/conda/.condarc
+   35  ls -la ~/.config/
+   36  whoami
+   37  ls -la ~ | grep config
+   38  ls -ld ~/.config
+   39  conda --no-plugins info --envs
+   40  sudo ls -la ~/.config/
+   41  CONDA_NO_PLUGINS=true conda info --envs
+   42  clear
+   43  conda deactivate
+   44  ~/miniconda3/uninstall.sh
+   45  sudo ~/miniconda3/uninstall.sh
+   46  conda env list
+   47  python
+   48  python
+   49  python
+   50  rm -rf /usr/local/bin/python*
+   51  sudo rm -rf /usr/local/bin/python*
+   52  sudo rm -rf/usr/local/bin/pip*
+   53  conda
+   54  /Users/audible-garden/Downloads/Miniconda3-latest-MacOSX-arm64.sh 
+   55  sudo /Users/audible-garden/Downloads/Miniconda3-latest-MacOSX-arm64.sh 
+   56  sudo bash /Users/audible-garden/Downloads/Miniconda3-latest-MacOSX-arm64.sh 
+   57  conda activate base
+   58  conda activate base
+   59  shasum -a 256 filename
+   60  cd ..
+   61  ls
+   62  cd ..
+   63  ls
+   64  cd ../Downloads
+   65  ls
+   66  clear
+   67  sh Miniconda3-latest-MacOSX-arm64.sh
+   68  sudo ~/miniconda3/uninstall.sh
+   69  clear
+   70  ls
+   71  python
+   72  conda
+   73  sourec ~/.zshrc
+   74  source ~/.zshrc
+   75  conda --version
+   76  python
+   77  sudo mactop
+   78  cd /Users/audible-garden/Downloads && chmod +x Miniconda3-latest-MacOSX-arm64.sh
+   79  ./Miniconda3-latest-MacOSX-arm64.sh -b -p $HOME/miniconda3
+   80  $HOME/miniconda3/bin/conda init zsh
+   81  mkdir -p ~/.config/conda && touch ~/.config/conda/.condarc && chmod 755 ~/.config/conda && chmod 644 ~/.config/conda/.condarc
+   82  mkdir -p ~/.config/conda && touch ~/.config/conda/.condarc && sudo chmod 755 ~/.config/conda && sudo echo 'export PATH="$HOME/miniconda3/bin:$PATH"' >> ~/.zshrcchmod 644 ~/.config/conda/.condarc
+   83  ls -la $HOME/miniconda3/bin/conda
+   84  export PATH="$HOME/miniconda3/bin:$PATH" && conda --version
+   85  rm -rf ~/.config/conda && rm -f ~/.condarc
+   86  export PATH="$HOME/miniconda3/bin:$PATH" && conda --version
+   87  export PATH="$HOME/miniconda3/bin:$PATH" && CONDA_NO_PLUGINS=true conda --version
+   88  ls -la ~/.config/
+   89  ls -la ~ | grep .config
+   90  sudo chown -R audible-garden:staff ~/.config
+   91  export PATH="$HOME/miniconda3/bin:$PATH" && conda --version
+   92  export PATH="$HOME/miniconda3/bin:$PATH" && conda init zsh
+   93  tail -n 20 ~/.zshrc
+   94  export PATH="$HOME/miniconda3/bin:$PATH" && conda info
+   95  export PATH="$HOME/miniconda3/bin:$PATH" && conda env list
+   96  python --version
+   97  conda activate garden && python --version
+   98  conda activate garden && bash patch_audiolazy.sh
+   99  conda activate garden && find /Users/audible-garden/miniconda3/envs/garden -name "audiolazy" -type d
+  100  conda activate garden && ls /Users/audible-garden/miniconda3/envs/garden/lib/python3.12/site-packages/audiolazy/lazy_*.py
+  101  conda activate garden && head -30 /Users/audible-garden/miniconda3/envs/garden/lib/python3.12/site-packages/audiolazy/lazy_analysis.py
+  102  conda activate garden && bash patch_audiolazy.sh
+  103  conda activate garden && python -c "from audiolazy import str2midi; print('audiolazy import successful!')"
+  104  conda activate garden && grep -n "from collections import" /Users/audible-garden/miniconda3/envs/garden/lib/python3.12/site-packages/audiolazy/*.py
+  105  conda activate garden && sed -n '22p' /Users/audible-garden/miniconda3/envs/garden/lib/python3.12/site-packages/audiolazy/lazy_core.py
+  106  conda activate garden && sed -n '21p' /Users/audible-garden/miniconda3/envs/garden/lib/python3.12/site-packages/audiolazy/lazy_stream.py
+  107  conda activate garden && bash patch_audiolazy.sh
+  108  conda activate garden && python -c "from audiolazy import str2midi; print('✅ audiolazy import successful!'); print('Testing str2midi function:', str2midi('C4'))"
+  109  conda activate garden && python turntable_gui.py
+  110  ls -la
+  111  rm -rf .git
+  112  ls -la
+  113  git status
+  114  conda activate garden
+  115  clear
+  116  sudo mactop
+  117  conda create -n rerun python=3.12.11 -y
+  118  conda activate rerun
+  119  ls
+  120  cd ..
+  121  ls
+  122  cd Desktop/python
+  123  clear
+  124  ls
+  125  cd live_camera_edge_detection
+  126  clear
+  127  ls
+  128  pip install rerun-sdk
+  129  python live_camera_edge_detection.py
+  130  conda deactivate
+  131  conda env remove -n rerun
+  132  conda activate garden
+  133  python live_camera_edge_detection.py
+  134  python live_camera_edge_detection.py
+  135  cd /Users/audible-garden/audible-garden-TH && python3 camera_spec_checker.py
+  136  pip3 install -r requirements.txt
+  137  python3 camera_spec_checker.py
+  138  python3 fixed_turntable.py --manual_roi n --skip 30 --rpm 2.5
+  139  python3 -c "import audiolazy; print(audiolazy.__file__)"
+  140  AUDIOLAZY_DIR="/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/audiolazy" && echo "Patching $AUDIOLAZY_DIR/lazy_analysis.py" && sudo sed -i '' 's/from collections import deque, Sequence, Iterable/from collections import deque\\nfrom collections.abc import Sequence, Iterable/' "$AUDIOLAZY_DIR/lazy_analysis.py"
+  141  python3 fixed_turntable.py --manual_roi n --skip 30 --rpm 2.5 --resolution 1280x720
+  142  python3 fixed_turntable.py --manual_roi n --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y
+  143  python3 fixed_turntable.py --roi_mode circular --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y
+  144  conda activate garden && python fixed_turntable.py --roi_mode circular --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y
+  145  conda activate garden && python fixed_turntable.py --roi_mode circular --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y --record_score y
+  146  conda activate garden && python fixed_turntable.py --roi_mode circular --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y --record_score y
+  147  conda activate garden && python fixed_turntable.py --roi_mode circular --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y --record_score y
+  148  conda activate garden && python fixed_turntable.py --roi_mode circular --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y --record_score y
+  149  conda activate garden && python fixed_turntable.py --roi_mode circular --skip 30 --rpm 2.5 --resolution 1280x720 --show_full y --record_score y
+  150  conda activate garden && python fixed_turntable.py --roi_mode circular --skip 5 --rpm 2.5 --resolution 1280x720 --show_full y --record_score y
+  151  conda activate garden && python turntable_gui.py --roi_mode circular
+  152  conda activate garden && python turntable_gui.py --roi_mode circular
+  153  conda activate garden && python turntable_gui.py --roi_mode circular
+  154  conda activate garden && python fixed_turntable.py --detect_rpm y --roi_mode circular
+  155  conda activate garden && python turntable_gui.py
+  156  mkdir revised
+  157  mv turntable_gui.py fixed_turntable.py requirements.txt README.md GUI_MANUAL.md GUI_MANUAL_EN.md test_commands.txt changes.txt revised/
+  158  mv utils/ revised/
+  159  mv revised/images revised/data
+  160  cd revised && python -c "from fixed_turntable import TurntableScoreRecorder; print('✅ 모듈 임포트 성공')"
+  161  python -c "from fixed_turntable import TurntableScoreRecorder; print('✅ 모듈 임포트 성공')"
+  162  python -c "from fixed_turntable import TurntableScoreRecorder; print('✅ 모듈 임포트 성공')"
+  163  python fixed_turntable.py --record_first y --timeout 5
+  164  python fixed_turntable.py --record_score y
+  165  python fixed_turntable.py --record_score y
+  166  python fixed_turntable.py --record_score y
+  167  python fixed_turntable.py --record_score y --roi_mode circular --detect_rpm y
+  168  ps aux | grep turntable_gui.py | grep -v grep | awk '{print $2}' | xargs kill -9
+  169  python turntable_gui.py
+  170  python turntable_gui.py
+  171  python turntable_gui.py
+  172  python turntable_gui.py
+  173  python turntable_gui.py
+  174  python turntable_gui.py
+  175  python turntable_gui.py
+  176  python analyze_score.py
+  177  python get_fps.py
+  178  python turntable_gui.py
+  179  python turntable_gui.py
+  180  python turntable_gui.py
+  181  python turntable_gui.py
+  182  python turntable_gui.py
+  183  python turntable_gui.py
+  184  python turntable_gui.py
+  185  python turntable_gui.py
+  186  python turntable_gui.py
+  187  python turntable_gui.py --cli --duration 10
+  188  python turntable_gui.py --cli --rpm 5 --duration 15 --record --exit-on-record-complete
+  189  python turntable_gui.py --cli --duration 5 --rpm 3
+  190  conda activate garden
+  191  python turntable_gui.py
+  192  python tgui_lite.py
+  193  clear
+  194  python edge_detection.py
+  195  python edge_detection.py
+  196  python edge_detection.py
+  197  python edge_detection.py
+  198  python edge_detection.py
+  199  python edge_detection.py
+  200  python edge_detection.py
+  201  clear
+  202  python edge_detection.py
+  203  python edge_detection.py
+  204  python live_camera_edge_detection.py
+  205  python live_camera_edge_detection.py
+  206  python live_camera_edge_detection.py
+  207  python live_camera_edge_detection.py
+  208  clear
+  209  python live_camera_edge_detection.py
+  210  python turntable_gui_with_edge_detection.py
+  211  python turntable_gui_with_edge_detection.py
+  212  python turntable_gui_with_edge_detection.py
+  213  python turntable_gui_with_edge_detection.py
+  214  clear
+  215  conda activate garden && python fixed_turntable.py --detect_rpm y
+  216  python fixed_turntable.py --load_score "images/20250709_160000_circular_CPentatonic_2.5rpm"
+  217  sudo mactop
+  218  python turntable_gui.py
+  219  # 이전에 저장된 세션 폴더를 지정하여 실행\npython fixed_turntable.py --load_score "images/20250709_160000_circular_CPentatonic_2.5rpm"
+  220  conda activate garden
+  221  # 이전에 저장된 세션 폴더를 지정하여 실행\npython fixed_turntable.py --load_score "images/20250709_160000_circular_CPentatonic_2.5rpm"
+  222  cd revised
+  223  # 이전에 저장된 세션 폴더를 지정하여 실행\npython fixed_turntable.py --load_score "images/20250709_160000_circular_CPentatonic_2.5rpm"
+  224  conda activate garden && python fixed_turntable.py --record_score y --rpm 4 --roi_mode circular\n
+  225  mactop
+  226  sudo mactop
+  227  conda activate garden
+  228  conda activate garden
+  229  cd revised
+  230  python turntable_gui.py
+  231  python turntable_gui.py --cli
+  232  python turntable_gui.py --cli
+  233  python turntable_gui.py --cli
+  234  python turntable_gui.py --cli
+  235  python turntable_gui.py --cli
+  236  python turntable_gui.py --cli
+  237  python turntable_gui.py --cli
+  238  python turntable_gui.py --cli
+  239  python turntable_gui.py --cli
+  240  python turntable_gui.py --cli
+  241  python turntable_gui.py --cli
+  242  ;2A
+  243  python turntable_gui.py --cli
+  244  python turntable_gui.py --cli
+  245  python turntable_gui.py --cli
+  246  python turntable_gui.py --cli
+  247  python turntable_gui.py --cli
+  248  python turntable_gui.py --cli
+  249  conda activate garden && python fixed_turntable.py --record_score y --rpm 4 --roi_mode circular\n
+  250  conda activate garden
+  251  cd revised
+  252  python turntable_gui.py --cli --duration 180
+  253  python turntable_gui.py --cli --duration 180
+  254  python turntable_gui.py --cli --duration 180
+  255  python turntable_gui.py --cli --duration 180
+  256  python turntable_gui_.py --cli --duration 300
+  257  python turntable_gui_.py --cli --duration 300
+  258  python turntable_gui_.py --cli --duration 3000
+  259  python turntable_gui_.py --cli --duration 3000
+  260  git init
+  261  git config --get init.defaultBranch
+  262  git status
+  263  git add .
+  264  git status
+  265  git commit -m "create project audible-garden-TH"
+  266  git branch -M main
+  267  git remote add origin https://github.com/alexhonggi/audible-garden-TH.gi
+  268  git remote add origin https://github.com/alexhonggi/audible-garden-TH.git
+  269  git remote rm origin
+  270  git remote add origin https://github.com/alexhonggi/audible-garden-TH.git
+  271  git push -u origin main
+  272  conda create -n garden python=3.12
+  273  conda activate garden
+  274  cd audible-garden-TH
+  275  clear
+  276  ls
+  277  pip install -r requirements.txt
+  278  conda deactivate
+  279  conda env remove -n garden
+  280  conda env lsit
+  281  conda env list
+  282  conda create -n garden python=3.12.11 -y
+  283  conda activate garden
+  284  pip install opencv-python
+  285  python
+  286  python
+  287  pip install pandas
+  288  python
+  289  pip install python-osc
+  290  pip install PyQt5
+  291  python
+  292  clear
+  293  python
+  294  pip install audiolazy
+  295  pip install PyYAML
+  296  python
+  297  clear
+  298  python tgui_lite.py
+  299  python tgui_lite.py
+  300  clear
+  301  ls
+  302  python turntable_gui.py
+  303  clear
+  304  conda activate garden
+  305  python turntable_gui.py
+  306  python
+  307  pip install rerun-sdk
+  308  pip uninstall rerun-sdk
+  309  pip install rerun-sdk
+  310  ls
+  311  cd revised
+  312  ls
+  313  python turntable_gui.py
+  314  python turntable_gui.py
+  315  python turntable_gui.py
+  316  python turntable_gui.py
+  317  python turntable_gui.py --cli
+  318  python turntable_gui.py --cli
+  319  python turntable_gui.py --cli
+  320  python turntable_gui.py --cli
+  321  python turntable_gui.py --cli --duration 300
+  322  python turntable_gui.py --cli --duration 300
+  323  python turntable_gui.py --cli --duration 300
+  324  python turntable_gui.py --cli --duration 300
+  325  python turntable_gui.py --cli --duration 300
+  326  python turntable_gui.py --cli --duration 300
+  327  python turntable_gui.py --cli --duration 300
+  328  python turntable_gui.py --cli --duration 300
+  329  conda activate garden
+  330  cd ../..
+  331  ls
+  332  cd ../
+  333  ls
+  334  cd ~/Desktop
+  335  cd python/live_camera_edge_detection
+  336  python live_camera_edge_detection.py
+  337  python live_camera_edge_detection.py
+  338  python live_camera_edge_detection.py
+  339  python live_camera_edge_detection.py
+  340  conda activate garden
+  341  python turntable_gui.py --cli --duration 300
+  342  python turntable_gui_.py --cli --duration 300
+  343  cd revised
+  344  python turntable_gui_.py --cli --duration 300
+  345  python turntable_gui_.py --cli --duration 300
+  346  python turntable_gui_.py --cli --duration 300
+  347  python turntable_gui_.py --cli --duration 300
+  348  python turntable_gui_.py
+  349  python turntable_gui_.py --cli --duration 60 --rpm 2.5 --transmission-interval 10\n
+  350  python turntable_gui_.py --cli --duration 60 --rpm 2.5 --transmission-interval 10\n
+  351  python turntable_gui_.py --cli --duration 60 --rpm 2.5 --transmission-interval 60\n
+  352  python turntable_gui_.py --cli --duration 60 --rpm 2.5 --transmission-interval 30\n
+  353  git add .
+  354  git commit -m "1차 초안"
+  355  git push
+  356  python turntable_gui_.py --cli --duration 60 --rpm 2.5 --transmission-interval 30\n
+  357  python turntable_gui_.py --cli --duration 60 --rpm 2.5 --transmission-interval 30\n
+  358  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30\n
+  359  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30\n
+  360  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30\n
+  361  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30\n
+  362  conda activate garden
+  363  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  364  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  365  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  366  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  367  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  368  python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30
+  369  ls
+  370  cd ..
+  371  git status
+  372  git add .
+  373  git commit -m "txlab version"
+  374  git push
+  375  history
+  376  history > history.txt
