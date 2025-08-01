@@ -1,0 +1,4 @@
+실행할 명령어: /Users/starchaser/opt/anaconda3/envs/garden/bin/python turntable_gui_.py --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json
+작업 디렉토리: /Users/starchaser/dev/audible-garden-TH/revised
+프로세스 시작됨 (PID: 17726)
+프로세스가 종료됨 (PID: 17726)

@@ -1,0 +1,6 @@
+2025-08-01 13:37:13.235 python[17726:5229617] WARNING: AVCaptureDeviceTypeExternal is deprecated for Continuity Cameras. Please use AVCaptureDeviceTypeContinuityCamera and add NSCameraUseContinuityCameraDeviceType to your Info.plist.
+ℹ️ GUI 모드로 실행합니다. CLI 관련 인자는 무시됩니다.
+✅ config.json 로드 완료.
+📷 카메라 0 (Logitech BRIO) 열기 시도...
+✅ 카메라 준비 완료. 실제 해상도: (1280, 720), FPS: 30
+GUI: 카메라 준비 완료 신호 받음 (FPS: 30.0, 해상도: (1280, 720))
