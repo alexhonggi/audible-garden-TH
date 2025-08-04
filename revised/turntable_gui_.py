@@ -764,6 +764,16 @@ def run_cli(args):
     osc_client = init_client(port=5555)
     timing_info = calculate_timing_parameters(args.rpm, fps)
     
+    # 레코드 감지기 초기화 (CLI 모드용)
+    record_detector = create_record_detector(
+        method="color_analysis",
+        threshold=0.2,
+        baseline_frames=30,
+        smoothing_factor=0.8
+    )
+    record_present = False
+    record_confidence = 0.0
+    
     score_recorder = TurntableScoreRecorder(args.rpm, fps)
     if args.record:
         default_scale = config.get('scales', {}).get('default_scale', 'C_PENTATONIC')
@@ -811,6 +821,15 @@ def run_cli(args):
                 h = min(88 * 10, frame.shape[0] - y - 50)
                 roi_coords = (x, y, w, h)
             print(f"✅ ROI 자동 감지 완료: {roi_coords}")
+            
+            # ROI 설정 후 레코드 감지기 초기화
+            record_detector.set_roi(roi_coords)
+            print("🎵 레코드 감지기 초기화 완료")
+        
+        # 레코드 감지 (CLI 모드)
+        record_present, record_confidence = record_detector.detect_record(frame)
+        if frame_count < 5:  # 처음 몇 프레임에서 상태 출력
+            print(f"🔍 프레임 {frame_count}: record_present={record_present}, confidence={record_confidence:.3f}")
         
         # --- `process_logic`의 핵심 로직을 CLI 환경에 맞게 적용 ---
         raw_roi_for_record = None
@@ -834,16 +853,24 @@ def run_cli(args):
             if roi.size > 0:
                 roi_gray = cv.cvtColor(roi, cv.COLOR_BGR2GRAY)
         
-        if roi_gray.size > 0:
-            midi_notes, velocities, durations = generate_midi_from_roi(roi_gray, config)
-            # CLI 모드에서도 전송 간격 체크
+        # 레코드가 있을 때만 소리 생성 (CLI 모드)
+        if record_present:
+            if roi_gray.size > 0:
+                midi_notes, velocities, durations = generate_midi_from_roi(roi_gray, config)
+                # CLI 모드에서도 전송 간격 체크
+                should_transmit = (frame_count % args.transmission_interval == 0)
+                if osc_client and len(midi_notes) > 0 and should_transmit:
+                    durations_ms = [int(d) for d in durations]
+                    send_midi(osc_client, len(midi_notes), midi_notes, velocities, durations_ms)
+                    transmission_count += 1
+                    if score_recorder.is_recording:
+                        score_recorder.add_notes(frame_count, midi_notes, velocities, durations, raw_roi_for_record, zodiac_info['section'] if zodiac_info else None)
+        else:
+            # 레코드가 없으면 소리 끄기 (CLI 모드)
             should_transmit = (frame_count % args.transmission_interval == 0)
-            if osc_client and len(midi_notes) > 0 and should_transmit:
-                durations_ms = [int(d) for d in durations]
-                send_midi(osc_client, len(midi_notes), midi_notes, velocities, durations_ms)
-                transmission_count += 1
-                if score_recorder.is_recording:
-                    score_recorder.add_notes(frame_count, midi_notes, velocities, durations, raw_roi_for_record, zodiac_info['section'] if zodiac_info else None)
+            if should_transmit and osc_client:
+                stop_all_sounds(osc_client)
+                print("🔇 레코드가 없어 소리를 끕니다")
         
         # 녹음 완료 확인
         if args.record and score_recorder.is_recording:
