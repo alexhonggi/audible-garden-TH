@@ -1,4 +1,8 @@
-Traceback (most recent call last):
-  File "/Users/tx/project/audible-garden-TH/revised/turntable_controller.py", line 18, in <module>
-    from turntable_command_config import get_command, get_command_string
-ModuleNotFoundError: No module named 'turntable_command_config'
+실행할 명령어: /opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json
+작업 디렉토리: /Users/tx/project/audible-garden-TH/revised
+프로세스 시작됨 (PID: 17004)
+프로세스 종료됨 (PID: 17004)
+실행할 명령어: /opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json
+작업 디렉토리: /Users/tx/project/audible-garden-TH/revised
+프로세스 시작됨 (PID: 17007)
+프로세스 종료됨 (PID: 17007)
