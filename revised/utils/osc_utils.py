@@ -45,10 +45,47 @@ def init_client(port, ip="127.0.0.1"):
 
 
 def send_midi(client, n_pieces, midi_data, vel_data, dur_data):
+    # 빈 리스트인 경우 처리 - 모든 노트 끄기
+    if not midi_data or not vel_data or not dur_data:
+        # 모든 소리를 끄는 특별한 메시지 전송
+        client.send_message("/stop_all", 1)
+        return
+    
     N = random.randint(1, n_pieces)
     client.send_message("/note", random.sample(midi_data, N))
     client.send_message("/velocity", random.sample(vel_data, N))
     client.send_message("/duration", random.sample(dur_data, N))
+
+
+def stop_all_sounds(client):
+    """
+    모든 소리를 끄는 전용 함수
+    여러 방법을 시도하여 확실히 소리를 끕니다.
+    """
+    if client is None:
+        return
+    
+    try:
+        # 방법 1: 특별한 "모든 소리 끄기" 메시지 전송
+        client.send_message("/stop_all", 1)
+        
+        # 방법 2: 모든 MIDI 노트에 대해 velocity 0으로 전송 (fallback)
+        all_notes = list(range(21, 109))  # 피아노 범위 (A0 ~ C8)
+        zero_velocities = [0] * len(all_notes)
+        zero_durations = [0] * len(all_notes)
+        
+        client.send_message("/note", all_notes)
+        client.send_message("/velocity", zero_velocities)
+        client.send_message("/duration", zero_durations)
+        
+        # 방법 3: 빈 노트 리스트 전송 (일부 시스템용)
+        client.send_message("/note", [])
+        client.send_message("/velocity", [])
+        client.send_message("/duration", [])
+        
+        print("🔇 모든 소리 끄기 메시지 전송 (다중 방법)")
+    except Exception as e:
+        print(f"❌ 소리 끄기 메시지 전송 실패: {e}")
 
 
 def send_midi_td(client, n_pieces, midi_data, vel_data, dur_data):

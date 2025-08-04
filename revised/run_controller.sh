@@ -1,12 +1,15 @@
 #!/bin/bash
 
+# Source conda initialization for this script
+source ~/.zshrc
+
 # Turntable Controller 실행 스크립트
 # conda 환경의 정확한 Python을 사용하고 macOS에서 GUI를 제대로 표시합니다
 
 echo "🎵 Turntable Controller 시작 중..."
 
 # GUI가 제대로 나타나도록 nohup과 백그라운드 실행 사용 (로그 파일에 저장)
-nohup /Users/starchaser/opt/anaconda3/envs/garden/bin/python turntable_controller.py > turntable_controller.log 2>&1 &
+nohup /opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python turntable_controller.py > turntable_controller.log 2>&1 &
 
 echo "GUI 창이 나타날 때까지 잠시 기다려주세요..."
 echo ""

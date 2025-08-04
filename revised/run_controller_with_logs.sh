@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source conda initialization for this script
+source ~/.zshrc
+
 # Turntable Controller 실행 스크립트 (로그 저장 버전)
 # conda 환경의 정확한 Python을 사용하고 로그를 파일에 저장합니다
 
@@ -10,7 +13,7 @@ LOG_FILE="turntable_controller.log"
 echo "📄 로그 파일: $(pwd)/$LOG_FILE"
 
 # GUI가 제대로 나타나도록 로그 파일에 출력 저장
-nohup /Users/starchaser/opt/anaconda3/envs/garden/bin/python turntable_controller.py > "$LOG_FILE" 2>&1 &
+nohup /opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python turntable_controller.py > "$LOG_FILE" 2>&1 &
 
 echo "GUI 창이 나타날 때까지 잠시 기다려주세요..."
 echo ""

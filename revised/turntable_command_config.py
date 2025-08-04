@@ -23,7 +23,7 @@ COMMAND_FLAGS = {
 def get_command():
     """설정된 플래그들을 바탕으로 실행할 명령어를 생성합니다."""
     # conda 환경의 Python 사용
-    python_path = "/Users/starchaser/opt/anaconda3/envs/garden/bin/python"
+    python_path = "/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python"
     cmd = [python_path, SCRIPT_PATH]
     
     for flag, value in COMMAND_FLAGS.items():

@@ -29,7 +29,8 @@ from fixed_turntable import (
 )
 # generate_midi_from_roi를 새로 임포트하고, 오래된 것들은 제거
 from utils.audio_utils_simple import generate_midi_from_roi
-from utils.osc_utils import init_client, send_midi
+from utils.osc_utils import init_client, send_midi, stop_all_sounds
+from utils.record_detector import create_record_detector
 
 class CameraThread(QThread):
     """
@@ -179,6 +180,11 @@ class TurntableGUI(QMainWindow):
         self.zodiac_info = None # 오버레이에 그릴 정보
         self.detected_rpm_value = None # 오버레이에 그릴 정보
         
+        # 레코드 감지기 초기화
+        self.record_detector = None
+        self.record_present = False
+        self.record_confidence = 0.0
+        
     def _create_control_widgets(self):
         """컨트롤 패널에 들어갈 위젯들을 생성하고 배치합니다."""
         
@@ -253,7 +259,22 @@ class TurntableGUI(QMainWindow):
         transmission_group.setLayout(transmission_layout)
         self.controls_layout.addWidget(transmission_group)
 
-        # 5. 악보 컨트롤 그룹
+        # 5. 레코드 감지 그룹
+        record_group = QGroupBox("레코드 감지")
+        record_layout = QVBoxLayout()
+        self.record_detection_checkbox = QCheckBox("레코드 감지 활성화")
+        self.record_detection_checkbox.setChecked(True)
+        self.record_status_label = QLabel("레코드 상태: 감지 중...")
+        self.record_confidence_label = QLabel("신뢰도: 0.0")
+        self.reset_baseline_button = QPushButton("기준 재설정")
+        record_layout.addWidget(self.record_detection_checkbox)
+        record_layout.addWidget(self.record_status_label)
+        record_layout.addWidget(self.record_confidence_label)
+        record_layout.addWidget(self.reset_baseline_button)
+        record_group.setLayout(record_layout)
+        self.controls_layout.addWidget(record_group)
+
+        # 6. 악보 컨트롤 그룹
         score_group = QGroupBox("악보 제어")
         score_layout = QVBoxLayout()
         self.record_checkbox = QCheckBox("첫 바퀴 악보 녹음")
@@ -277,6 +298,15 @@ class TurntableGUI(QMainWindow):
         self.load_button.clicked.connect(self.load_score_session)
         self.playback_button.clicked.connect(self.toggle_playback_mode)
         self.manual_roi_button.toggled.connect(self.toggle_roi_setting)
+        self.reset_baseline_button.clicked.connect(self.reset_record_baseline)
+
+    def reset_record_baseline(self):
+        """레코드 감지 기준 데이터 재설정"""
+        if self.record_detector:
+            self.record_detector.reset_baseline()
+            print("🔄 레코드 감지 기준 재설정 완료")
+        else:
+            print("⚠️ 레코드 감지기가 초기화되지 않았습니다.")
 
     def get_transmission_interval(self):
         """전송 간격 설정을 프레임 수로 변환합니다."""
@@ -392,6 +422,21 @@ class TurntableGUI(QMainWindow):
         if do_record and not self.is_playback_mode: # 재생 모드가 아닐 때만 녹음
             self.score_recorder.start_recording(0, current_scale, current_roi_mode)
 
+        # 레코드 감지기 초기화
+        if self.record_detection_checkbox.isChecked():
+            self.record_detector = create_record_detector(
+                method="color_analysis",
+                threshold=0.1,  # 더 낮은 임계값
+                baseline_frames=30,
+                smoothing_factor=0.8
+            )
+            if self.roi_coords:
+                self.record_detector.set_roi(self.roi_coords)
+            print("🎵 레코드 감지기 초기화 완료")
+        else:
+            self.record_detector = None
+            print("🎵 레코드 감지 비활성화")
+
         # ROI 설정 (수동 ROI가 있으면 사용, 없으면 자동 감지)
         if self.manual_roi:
             self.roi_coords = self.manual_roi
@@ -447,6 +492,12 @@ class TurntableGUI(QMainWindow):
                 overlay_frame, self.roi_coords, self.zodiac_info, self.timing_info, self.frame_count,
                 self.roi_mode_combo.currentText(), self.transmission_count, self.current_fps, self.score_recorder,
                 detected_rpm=self.detected_rpm_value)
+            
+            # 레코드 감지 상태 오버레이 추가
+            if self.record_detector:
+                record_text = f"RECORD: {'ON' if self.record_present else 'OFF'} ({self.record_confidence:.2f})"
+                color = (0, 255, 0) if self.record_present else (0, 0, 255)  # 녹색/빨간색
+                cv.putText(overlay_frame, record_text, (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
         # 2. 수동 ROI 설정 모드일 때 시각적 피드백 그리기
         if self.is_setting_roi and self.roi_start_point:
@@ -544,7 +595,18 @@ class TurntableGUI(QMainWindow):
         if not self.is_running or self.current_frame is None:
             return
 
-        # --- 1. RPM 감지 및 타이밍 업데이트 ---
+        # --- 1. 레코드 감지 ---
+        if self.record_detector:
+            self.record_present, self.record_confidence = self.record_detector.detect_record(self.current_frame)
+            # UI 업데이트
+            status_text = "레코드 있음 ✅" if self.record_present else "레코드 없음 ❌"
+            self.record_status_label.setText(f"레코드 상태: {status_text}")
+            self.record_confidence_label.setText(f"신뢰도: {self.record_confidence:.2f}")
+        else:
+            self.record_present = True  # 감지기가 없으면 항상 레코드가 있다고 가정
+            self.record_confidence = 1.0
+
+        # --- 2. RPM 감지 및 타이밍 업데이트 ---
         if self.rpm_detector:
             self.detected_rpm_value = self.rpm_detector.calculate_rpm(self.current_frame)
             if self.detected_rpm_value is not None and self.detected_rpm_value > 0.5:
@@ -601,17 +663,30 @@ class TurntableGUI(QMainWindow):
         transmission_interval = self.get_transmission_interval()
         should_transmit = (self.frame_count % transmission_interval == 0)
         
-        if self.is_playback_mode:
-            # 🎵 재생 모드
-            if self.score_recorder and self.score_recorder.is_loaded:
-                # (단, 전송은 간격에 맞춰서)
-                current_notes_in_score = self.score_recorder.get_playback_notes(self.frame_count)
-                if current_notes_in_score and current_notes_in_score[0]:
-                        midi_notes, velocities, durations = current_notes_in_score
+        # 레코드가 있을 때만 소리 생성
+        if self.record_present:
+            # 레코드가 다시 감지되면 소리 끄기 플래그 리셋
+            if hasattr(self, '_sound_stopped'):
+                delattr(self, '_sound_stopped')
+            if self.is_playback_mode:
+                # 🎵 재생 모드
+                if self.score_recorder and self.score_recorder.is_loaded:
+                    # (단, 전송은 간격에 맞춰서)
+                    current_notes_in_score = self.score_recorder.get_playback_notes(self.frame_count)
+                    if current_notes_in_score and current_notes_in_score[0]:
+                            midi_notes, velocities, durations = current_notes_in_score
 
-        # 🎼 실시간 처리 모드 (roi_gray가 유효할 때만 실행)
-        elif roi_gray.size > 0:
-            midi_notes, velocities, durations = generate_midi_from_roi(roi_gray, self.config)
+            # 🎼 실시간 처리 모드 (roi_gray가 유효할 때만 실행)
+            elif roi_gray.size > 0:
+                midi_notes, velocities, durations = generate_midi_from_roi(roi_gray, self.config)
+        else:
+            # 레코드가 없으면 소리 끄기 (한 번만 전송)
+            if should_transmit and not hasattr(self, '_sound_stopped'):
+                if self.osc_client:
+                    # 모든 소리를 끄는 전용 함수 사용
+                    stop_all_sounds(self.osc_client)
+                    print("🔇 레코드가 없어 소리를 끕니다")
+                    self._sound_stopped = True  # 한 번만 전송하도록 플래그 설정
 
         # 전송 간격에 맞춰서만 OSC 전송
         if self.osc_client and len(midi_notes) > 0 and should_transmit:

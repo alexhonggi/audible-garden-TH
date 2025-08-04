@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source conda initialization for this script
+source ~/.zshrc
+
 # Turntable Controller 실행 스크립트 (터미널 출력 버전)
 # conda 환경의 정확한 Python을 사용하고 터미널에서 직접 로그를 봅니다
 
@@ -11,4 +14,4 @@ echo "🎯 터테이블 프로그램을 직접 실행합니다 (6000초간)..."
 echo ""
 
 # 터테이블 프로그램을 직접 실행 (모든 출력이 터미널에 표시됨)
-/Users/starchaser/opt/anaconda3/envs/garden/bin/python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json 
+/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python turntable_gui_.py --cli --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json 
