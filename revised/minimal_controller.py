@@ -21,6 +21,7 @@ from PyQt5.QtGui import QFont
 class ProcessThread(QThread):
     """백그라운드에서 CLI 프로세스를 실행하는 스레드"""
     finished_signal = pyqtSignal()
+    ready_signal = pyqtSignal()  # 시스템 준비 완료 시그널
     
     def __init__(self):
         super().__init__()
@@ -42,18 +43,29 @@ class ProcessThread(QThread):
                 "--config", "config.json"
             ]
             
-            # 프로세스 실행 (출력은 숨김)
+            # 프로세스 실행 (출력 모니터링)
             self.process = subprocess.Popen(
                 cmd,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                bufsize=1
             )
             
             self.running = True
+            baseline_complete = False
             
-            # 프로세스가 종료될 때까지 대기
+            # 프로세스가 종료될 때까지 대기하면서 출력 모니터링
             while self.running and self.process.poll() is None:
-                time.sleep(0.1)
+                output = self.process.stdout.readline()
+                if output:
+                    output = output.strip()
+                    # 기준 설정 완료 감지
+                    if "✅ 기준 데이터 수집 완료!" in output and not baseline_complete:
+                        baseline_complete = True
+                        self.ready_signal.emit()
+                else:
+                    time.sleep(0.1)
             
         except Exception as e:
             pass  # 오류도 조용히 무시
@@ -150,6 +162,18 @@ class MinimalController(QMainWindow):
         self.stop_button.setEnabled(False)
         layout.addWidget(self.stop_button)
         
+        # 상태 표시 라벨 (파란 불)
+        self.status_label = QLabel("●")
+        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setStyleSheet("""
+            QLabel {
+                color: #cccccc;
+                font-size: 24px;
+                font-weight: bold;
+            }
+        """)
+        layout.addWidget(self.status_label)
+        
     def start_cli(self):
         """CLI 모드 시작"""
         if self.process_thread and self.process_thread.isRunning():
@@ -159,13 +183,14 @@ class MinimalController(QMainWindow):
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         
-        # 3초 대기 후 실행
+        # 0.01초 대기 후 실행
         def delayed_start():
-            time.sleep(3)
+            time.sleep(0.01)
             
             # 프로세스 스레드 시작
             self.process_thread = ProcessThread()
             self.process_thread.finished_signal.connect(self.on_process_finished)
+            self.process_thread.ready_signal.connect(self.on_system_ready)
             self.process_thread.start()
         
         # 백그라운드에서 대기
@@ -178,9 +203,9 @@ class MinimalController(QMainWindow):
         if not self.process_thread or not self.process_thread.isRunning():
             return
             
-        # 3초 대기 후 중지
+        # 0.01초 대기 후 중지
         def delayed_stop():
-            time.sleep(3)
+            time.sleep(0.01)
             self.process_thread.stop()
         
         # 백그라운드에서 대기
@@ -192,6 +217,24 @@ class MinimalController(QMainWindow):
         """프로세스 종료 시 호출"""
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
+        # 파란 불 끄기
+        self.status_label.setStyleSheet("""
+            QLabel {
+                color: #cccccc;
+                font-size: 24px;
+                font-weight: bold;
+            }
+        """)
+        
+    def on_system_ready(self):
+        """시스템 준비 완료 시 호출 (파란 불 켜기)"""
+        self.status_label.setStyleSheet("""
+            QLabel {
+                color: #2196F3;
+                font-size: 24px;
+                font-weight: bold;
+            }
+        """)
         
     def closeEvent(self, event):
         """창 닫기 시 처리"""
