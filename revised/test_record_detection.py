@@ -39,7 +39,7 @@ def test_record_detection():
         print("🎯 레코드 감지기 초기화...")
         detector = create_record_detector(
             method="color_analysis",
-            threshold=0.1,  # 더 낮은 임계값
+            threshold=0.2,  # 사용자 요청으로 0.2로 변경
             baseline_frames=30,
             smoothing_factor=0.8
         )

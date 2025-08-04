@@ -422,21 +422,6 @@ class TurntableGUI(QMainWindow):
         if do_record and not self.is_playback_mode: # 재생 모드가 아닐 때만 녹음
             self.score_recorder.start_recording(0, current_scale, current_roi_mode)
 
-        # 레코드 감지기 초기화
-        if self.record_detection_checkbox.isChecked():
-            self.record_detector = create_record_detector(
-                method="color_analysis",
-                threshold=0.1,  # 더 낮은 임계값
-                baseline_frames=30,
-                smoothing_factor=0.8
-            )
-            if self.roi_coords:
-                self.record_detector.set_roi(self.roi_coords)
-            print("🎵 레코드 감지기 초기화 완료")
-        else:
-            self.record_detector = None
-            print("🎵 레코드 감지 비활성화")
-
         # ROI 설정 (수동 ROI가 있으면 사용, 없으면 자동 감지)
         if self.manual_roi:
             self.roi_coords = self.manual_roi
@@ -453,6 +438,24 @@ class TurntableGUI(QMainWindow):
                  w = 1
                  h = min(88 * 10, self.current_frame.shape[0] - y - 50)
                  self.roi_coords = (x, y, w, h)
+
+        # 레코드 감지기 초기화 (ROI 설정 후)
+        if self.record_detection_checkbox.isChecked():
+            print(f"🔧 ROI 좌표: {self.roi_coords}")
+            self.record_detector = create_record_detector(
+                method="color_analysis",
+                threshold=0.2,  # 사용자 요청으로 0.2로 변경
+                baseline_frames=30,
+                smoothing_factor=0.8
+            )
+            if self.roi_coords:
+                self.record_detector.set_roi(self.roi_coords)
+                print(f"🎵 레코드 감지기 초기화 완료 (ROI: {self.roi_coords})")
+            else:
+                print("⚠️ ROI가 설정되지 않아 레코드 감지가 제한적일 수 있습니다")
+        else:
+            self.record_detector = None
+            print("🎵 레코드 감지 비활성화")
 
         # 상태 변수 리셋
         self.frame_count = 0
@@ -476,6 +479,11 @@ class TurntableGUI(QMainWindow):
         print("🛑 로직 처리 중지...")
         self.is_running = False
         self.logic_timer.stop()
+        
+        # 레코드 감지기 정리
+        if self.record_detector:
+            self.record_detector.reset_baseline()
+            print("🔄 레코드 감지기 기준 재설정")
         
         # UI 업데이트
         self.start_button.setEnabled(True)
@@ -597,7 +605,16 @@ class TurntableGUI(QMainWindow):
 
         # --- 1. 레코드 감지 ---
         if self.record_detector:
+            # 디버그: 첫 몇 프레임에서 상태 출력
+            if self.frame_count < 5:
+                print(f"🔍 프레임 {self.frame_count}: 레코드 감지기 상태 - baseline_collected: {self.record_detector.baseline_collected}")
+            
             self.record_present, self.record_confidence = self.record_detector.detect_record(self.current_frame)
+            
+            # 디버그: 첫 몇 프레임에서 결과 출력
+            if self.frame_count < 5:
+                print(f"🔍 프레임 {self.frame_count}: record_present={self.record_present}, confidence={self.record_confidence:.3f}")
+            
             # UI 업데이트
             status_text = "레코드 있음 ✅" if self.record_present else "레코드 없음 ❌"
             self.record_status_label.setText(f"레코드 상태: {status_text}")
