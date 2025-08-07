@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 """
-🎵 Turntable Command Configuration
-=================================
-터테이블 명령어 설정을 관리하는 모듈
-
-Author: AI Assistant
-Date: 2025-01-08
+터테이블 명령어 설정 모듈
 """
 
-import os
 import sys
+import os
 
-# 스크립트 경로 설정
+# Add current directory to path for imports
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+# Add colored directory to path for utils
+colored_dir = os.path.join(os.path.dirname(script_dir), "colored")
+if colored_dir not in sys.path:
+    sys.path.insert(0, colored_dir)
+
+from utils.path_utils import get_python_path
+
+# 기본 설정
 SCRIPT_PATH = "turntable_gui_.py"
 
-# 기본 명령어 설정
 DEFAULT_COMMAND = {
     "duration": 6000,
     "rpm": 2.5,
@@ -72,8 +78,8 @@ def get_command(flags=None):
     """
     설정된 플래그들을 바탕으로 실행할 명령어를 생성합니다.
     """
-    # conda 환경의 Python 사용
-    python_path = "/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python"
+    # Get the correct Python path dynamically
+    python_path = get_python_path("garden")
     cmd = [python_path, SCRIPT_PATH, "--cli"]
     
     # 플래그에 따라 인자 추가

@@ -15,7 +15,19 @@ import time
 import threading
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QTextEdit
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import QFont
+
+# Add current directory to path for imports
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+# Add colored directory to path for utils
+colored_dir = os.path.join(os.path.dirname(script_dir), "colored")
+if colored_dir not in sys.path:
+    sys.path.insert(0, colored_dir)
+
+from utils.path_utils import get_python_path
 
 
 class ProcessThread(QThread):
@@ -31,9 +43,12 @@ class ProcessThread(QThread):
     def run(self):
         """CLI 모드 실행"""
         try:
+            # Get the correct Python path dynamically
+            python_path = get_python_path("garden")
+            
             # CLI 모드 실행 명령어
             cmd = [
-                "/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python",
+                python_path,
                 "turntable_gui_.py",
                 "--cli",
                 "--duration", "6000",
