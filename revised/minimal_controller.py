@@ -1,5 +1,3 @@
-from utils.path_utils import get_python_path
-
 #!/usr/bin/env python3
 """
 🎮 Minimal Turntable Controller
@@ -33,9 +31,9 @@ class ProcessThread(QThread):
     def run(self):
         """CLI 모드 실행"""
         try:
-            # CLI 모드 실행 명령어
+            # CLI 모드 실행 명령어 - sys.executable을 사용하여 현재 실행 중인 Python 경로 가져오기
             cmd = [
-                get_python_path("garden"),
+                sys.executable,
                 "turntable_gui_.py",
                 "--cli",
                 "--duration", "6000",
@@ -181,9 +179,18 @@ class MinimalController(QMainWindow):
         if self.process_thread and self.process_thread.isRunning():
             return
             
-        # 버튼 상태 변경
+                # 버튼 상태 변경
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
+        # 대기 상태(stand-by) 표시: 오렌지 불
+        self.status_label.setStyleSheet("""
+            QLabel {
+                color: #FFA500;
+                font-size: 24px;
+                font-weight: bold;
+            }
+        """)
+        
         
         # 0.01초 대기 후 실행
         def delayed_start():
@@ -248,6 +255,9 @@ class MinimalController(QMainWindow):
 
 def main():
     """메인 함수"""
+    # 현재 사용 중인 Python 경로 출력
+    print(f"🐍 Python 경로: {sys.executable}")
+    
     app = QApplication(sys.argv)
     
     # 애플리케이션 정보 설정

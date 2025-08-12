@@ -33,7 +33,7 @@ class ProcessThread(QThread):
         try:
             # CLI 모드 실행 명령어
             cmd = [
-                "/Users/audible-garden/miniconda3/envs/garden/bin/python",
+                sys.executable,
                 "turntable_gui_.py",
                 "--cli",
                 "--duration", "6000",
@@ -183,6 +183,14 @@ class MinimalController(QMainWindow):
         # 버튼 상태 변경
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
+        # 대기 상태(stand-by) 표시: 오렌지 불
+        self.status_label.setStyleSheet("""
+            QLabel {
+                color: #FFA500;
+                font-size: 24px;
+                font-weight: bold;
+            }
+        """)
         
         # 0.01초 대기 후 실행
         def delayed_start():
