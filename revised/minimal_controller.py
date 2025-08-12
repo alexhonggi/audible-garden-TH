@@ -1,3 +1,5 @@
+from utils.path_utils import get_python_path
+
 #!/usr/bin/env python3
 """
 🎮 Minimal Turntable Controller
@@ -33,7 +35,7 @@ class ProcessThread(QThread):
         try:
             # CLI 모드 실행 명령어
             cmd = [
-                "/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python",
+                get_python_path("garden"),
                 "turntable_gui_.py",
                 "--cli",
                 "--duration", "6000",

@@ -13,4 +13,4 @@ echo "⚠️  터미널 창을 닫으면 프로그램이 종료됩니다!"
 echo ""
 
 # GUI 모드로 터테이블 직접 실행 (카메라 화면 표시)
-/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python turntable_gui_.py --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json --osc-ports 5555,5556,5557 
+/Users/audible-garden/miniconda3/envs/garden/bin/python turntable_gui_.py --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json --osc-ports 5555,5556,5557 

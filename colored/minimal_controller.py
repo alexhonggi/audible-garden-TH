@@ -33,7 +33,7 @@ class ProcessThread(QThread):
         try:
             # CLI 모드 실행 명령어
             cmd = [
-                "/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python",
+                "/Users/audible-garden/miniconda3/envs/garden/bin/python",
                 "turntable_gui_.py",
                 "--cli",
                 "--duration", "6000",
