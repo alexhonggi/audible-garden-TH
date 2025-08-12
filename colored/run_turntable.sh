@@ -15,16 +15,8 @@ echo "2. 🎵 카메라 화면 없이 실행 (CLI 모드)"
 echo "   - 터미널에서만 로그가 표시됩니다"
 echo "   - 시스템 리소스를 적게 사용합니다"
 echo ""
-echo "3. 🎮 GUI 컨트롤러로 실행 (기존)"
-echo "   - START/STOP 버튼으로 제어합니다"
-echo "   - 로그 모니터링이 가능합니다"
-echo ""
-echo "4. 🎮 Simple Controller로 실행 (새로운)"
-echo "   - 간단한 START/STOP 버튼만 있습니다"
-echo "   - 실시간 로그 표시가 가능합니다"
-echo ""
 
-read -p "선택 (1-4): " choice
+read -p "선택 (1-2): " choice
 
 case $choice in
     1)
@@ -36,18 +28,6 @@ case $choice in
         echo ""
         echo "🎵 카메라 화면 없이 실행합니다..."
         ./run_without_camera.sh
-        ;;
-    3)
-        echo ""
-        echo "🎮 GUI 컨트롤러를 시작합니다..."
-        ./run_controller.sh
-        echo ""
-        echo "💡 로그 확인: ./monitor_both_logs.sh"
-        ;;
-    4)
-        echo ""
-        echo "🎮 Simple Controller를 시작합니다..."
-        ./run_simple_controller.sh
         ;;
     *)
         echo ""

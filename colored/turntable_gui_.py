@@ -31,6 +31,7 @@ from fixed_turntable import (
 from utils.audio_utils_simple import generate_midi_from_roi
 from utils.osc_utils import init_client, send_midi, stop_all_sounds
 from utils.record_detector import create_record_detector
+from utils.midi_transforms import apply_transformations_to_ports, get_port_transformation_info
 
 class CameraThread(QThread):
     """
@@ -99,10 +100,13 @@ class TurntableGUI(QMainWindow):
     """
     메인 GUI 애플리케이션 클래스
     """
-    def __init__(self):
+    def __init__(self, args=None):
         super().__init__()
         self.setWindowTitle("Audible Garden - Turntable GUI (Config-Managed)")
         self.setGeometry(100, 100, 1200, 800)
+        
+        # CLI 인자 저장
+        self.cli_args = args
 
         # --- 설정 파일 로드 ---
         try:
@@ -179,6 +183,7 @@ class TurntableGUI(QMainWindow):
         self.last_fps_time = 0
         self.zodiac_info = None # 오버레이에 그릴 정보
         self.detected_rpm_value = None # 오버레이에 그릴 정보
+        self.dynamic_interval_applied = False  # 동적 간격 적용 상태 추적
         
         # 레코드 감지기 초기화
         self.record_detector = None
@@ -397,8 +402,24 @@ class TurntableGUI(QMainWindow):
         self.is_running = True
         
         # --- 초기화 ---
-        # OSC 클라이언트
-        self.osc_client = init_client(port=5555)
+        # OSC 클라이언트들 (CLI 인자가 있으면 다중 포트 사용)
+        if self.cli_args and hasattr(self.cli_args, 'osc_ports'):
+            self.osc_ports = [int(port.strip()) for port in self.cli_args.osc_ports.split(',')]
+            self.osc_clients = [init_client(port=port) for port in self.osc_ports]
+            print(f"✅ GUI 모드: OSC 클라이언트 초기화 완료 (포트: {self.osc_ports})")
+        else:
+            self.osc_ports = [5555]  # 기본 단일 포트
+            self.osc_clients = [init_client(port=5555)]
+            print("✅ GUI 모드: OSC 클라이언트 초기화 완료 (포트: [5555])")
+        
+        # 포트별 변환 정보 출력
+        port_info = get_port_transformation_info(self.config)
+        for port_str, info in port_info.items():
+            if int(port_str) in self.osc_ports:
+                print(f"🎵 포트 {port_str} 변환: {info}")
+        
+        # 호환성을 위해 첫 번째 클라이언트를 기존 변수에도 할당
+        self.osc_client = self.osc_clients[0] if self.osc_clients else None
         
         # 현재 컨트롤 값들 가져오기
         current_rpm = self.rpm_slider.value() / 10.0
@@ -461,6 +482,7 @@ class TurntableGUI(QMainWindow):
         self.frame_count = 0
         self.transmission_count = 0
         self.last_fps_time = time.time()
+        self.dynamic_interval_applied = False  # 동적 간격 적용 상태 초기화
 
         # 로직 타이머 시작
         # 카메라 FPS보다 약간 더 자주 (예: 2배) 실행하여 정밀도 향상
@@ -676,8 +698,16 @@ class TurntableGUI(QMainWindow):
         # --- 3. MIDI 데이터 생성 및 OSC 전송 ---
         midi_notes, velocities, durations = [], [], []
         
-        # 전송 간격 체크
-        transmission_interval = self.get_transmission_interval()
+        # 전송 간격 체크 (동적 간격 우선 사용)
+        if self.record_detector and self.record_detector.baseline_collected:
+            transmission_interval = self.record_detector.get_dynamic_transmission_interval()
+            # 동적 간격 적용 시 한 번만 알림
+            if not self.dynamic_interval_applied:
+                static_interval = self.get_transmission_interval()
+                print(f"🎛️ GUI 모드: 동적 전송 간격 적용 {static_interval} → {transmission_interval}프레임")
+                self.dynamic_interval_applied = True
+        else:
+            transmission_interval = self.get_transmission_interval()  # GUI 드롭다운 값 사용
         should_transmit = (self.frame_count % transmission_interval == 0)
         
         # 레코드가 있을 때만 소리 생성
@@ -699,19 +729,30 @@ class TurntableGUI(QMainWindow):
         else:
             # 레코드가 없으면 소리 끄기 (한 번만 전송)
             if should_transmit and not hasattr(self, '_sound_stopped'):
-                if self.osc_client:
-                    # 모든 소리를 끄는 전용 함수 사용
-                    stop_all_sounds(self.osc_client)
+                if self.osc_clients:
+                    # 모든 OSC 클라이언트에서 소리 끄기
+                    for client in self.osc_clients:
+                        stop_all_sounds(client)
                     print("🔇 레코드가 없어 소리를 끕니다")
                     self._sound_stopped = True  # 한 번만 전송하도록 플래그 설정
 
-        # 전송 간격에 맞춰서만 OSC 전송
-        if self.osc_client and len(midi_notes) > 0 and should_transmit:
+        # 전송 간격에 맞춰서만 OSC 전송 (포트별 변환 적용)
+        if self.osc_clients and len(midi_notes) > 0 and should_transmit:
             # duration을 int로 변환하여 전송 (이미 밀리초 단위)
             durations_ms = [int(d) for d in durations]
-            send_midi(self.osc_client, len(midi_notes), midi_notes, velocities, durations_ms)
             
-            self.transmission_count += 1
+            # 포트별 변환 적용하여 전송
+            successful_transmissions = apply_transformations_to_ports(
+                base_notes=midi_notes,
+                base_velocities=velocities,
+                base_durations=durations_ms,
+                osc_ports=self.osc_ports,
+                osc_clients=self.osc_clients,
+                config=self.config,
+                send_midi_func=send_midi
+            )
+            
+            self.transmission_count += successful_transmissions
             
             # 실시간 처리 모드에서만 녹음
             if not self.is_playback_mode and self.score_recorder and self.score_recorder.is_recording:
@@ -761,7 +802,16 @@ def run_cli(args):
     print(f"✅ 카메라 준비 완료. 실제 해상도: {actual_res}, FPS: {fps}")
 
     # 3. 로직 컴포넌트 초기화
-    osc_client = init_client(port=5555)
+    # OSC 클라이언트들 초기화 (여러 포트 지원)
+    osc_ports = [int(port.strip()) for port in args.osc_ports.split(',')]
+    osc_clients = [init_client(port=port) for port in osc_ports]
+    print(f"✅ OSC 클라이언트 초기화 완료 (포트: {osc_ports})")
+    
+    # 포트별 변환 정보 출력
+    port_info = get_port_transformation_info(config)
+    for port_str, info in port_info.items():
+        if int(port_str) in osc_ports:
+            print(f"🎵 포트 {port_str} 변환: {info}")
     timing_info = calculate_timing_parameters(args.rpm, fps)
     
     # 레코드 감지기 초기화 (CLI 모드용)
@@ -785,6 +835,7 @@ def run_cli(args):
     frame_count = 0
     transmission_count = 0
     roi_coords = None
+    dynamic_interval = args.transmission_interval  # 초기값은 명령줄 인수 사용
     
     print(f"⏳ 지정된 시간 {args.duration}초 동안 또는 녹음 완료 시까지 실행됩니다...")
 
@@ -831,6 +882,11 @@ def run_cli(args):
         if frame_count < 5:  # 처음 몇 프레임에서 상태 출력
             print(f"🔍 프레임 {frame_count}: record_present={record_present}, confidence={record_confidence:.3f}")
         
+        # 기준 데이터 수집 완료 후 동적 전송 간격 적용
+        if record_detector.baseline_collected and dynamic_interval == args.transmission_interval:
+            dynamic_interval = record_detector.get_dynamic_transmission_interval()
+            print(f"🎛️ 동적 전송 간격 적용: {args.transmission_interval} → {dynamic_interval}프레임")
+        
         # --- `process_logic`의 핵심 로직을 CLI 환경에 맞게 적용 ---
         raw_roi_for_record = None
         current_angle = (frame_count * timing_info['degrees_per_frame']) % 360
@@ -857,19 +913,32 @@ def run_cli(args):
         if record_present:
             if roi_gray.size > 0:
                 midi_notes, velocities, durations = generate_midi_from_roi(roi_gray, config)
-                # CLI 모드에서도 전송 간격 체크
-                should_transmit = (frame_count % args.transmission_interval == 0)
-                if osc_client and len(midi_notes) > 0 and should_transmit:
+                # CLI 모드에서도 전송 간격 체크 (동적 간격 사용)
+                should_transmit = (frame_count % dynamic_interval == 0)
+                if osc_clients and len(midi_notes) > 0 and should_transmit:
                     durations_ms = [int(d) for d in durations]
-                    send_midi(osc_client, len(midi_notes), midi_notes, velocities, durations_ms)
-                    transmission_count += 1
+                    
+                    # 포트별 변환 적용하여 전송
+                    successful_transmissions = apply_transformations_to_ports(
+                        base_notes=midi_notes,
+                        base_velocities=velocities,
+                        base_durations=durations_ms,
+                        osc_ports=osc_ports,
+                        osc_clients=osc_clients,
+                        config=config,
+                        send_midi_func=send_midi
+                    )
+                    
+                    transmission_count += successful_transmissions
                     if score_recorder.is_recording:
                         score_recorder.add_notes(frame_count, midi_notes, velocities, durations, raw_roi_for_record, zodiac_info['section'] if zodiac_info else None)
         else:
-            # 레코드가 없으면 소리 끄기 (CLI 모드)
-            should_transmit = (frame_count % args.transmission_interval == 0)
-            if should_transmit and osc_client:
-                stop_all_sounds(osc_client)
+            # 레코드가 없으면 소리 끄기 (CLI 모드) (동적 간격 사용)
+            should_transmit = (frame_count % dynamic_interval == 0)
+            if should_transmit and osc_clients:
+                # 모든 OSC 클라이언트에서 소리 끄기
+                for client in osc_clients:
+                    stop_all_sounds(client)
                 print("🔇 레코드가 없어 소리를 끕니다")
         
         # 녹음 완료 확인
@@ -892,9 +961,9 @@ def run_cli(args):
     print("✨ 작업 완료.")
 
 
-def main_gui():
+def main_gui(args=None):
     app = QApplication(sys.argv)
-    gui = TurntableGUI()
+    gui = TurntableGUI(args)  # args 전달
     gui.show()
     sys.exit(app.exec_())
 
@@ -914,6 +983,7 @@ if __name__ == "__main__":
     parser.add_argument('--transmission-interval', type=int, default=30, help='[CLI] 전송 간격을 프레임 수로 지정합니다. (기본값: 30)')
     parser.add_argument('--record', action='store_true', help='[CLI] 첫 바퀴를 녹음하여 악보 파일로 저장합니다.')
     parser.add_argument('--exit-on-record-complete', action='store_true', help='[CLI] 악보 녹음이 완료되면 프로그램을 자동으로 종료합니다.')
+    parser.add_argument('--osc-ports', type=str, default='5555', help='[CLI] OSC 클라이언트 포트들 (쉼표로 구분, 예: 5555,5556,5557)')
 
     args = parser.parse_args()
 
@@ -921,7 +991,7 @@ if __name__ == "__main__":
     if args.cli:
         run_cli(args)
     else:
-        # GUI 관련 인자가 들어왔을 경우 무시하고 GUI 실행
+        # GUI 모드 실행 (일부 CLI 인자는 GUI에서도 활용 가능)
         if len(sys.argv) > 1:
-            print("ℹ️ GUI 모드로 실행합니다. CLI 관련 인자는 무시됩니다.")
-        main_gui()
+            print("ℹ️ GUI 모드로 실행합니다. 일부 설정은 GUI에서 적용됩니다.")
+        main_gui(args)  # args 전달

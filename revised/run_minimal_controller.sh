@@ -42,14 +42,24 @@ echo "🐍 Using Python: $PYTHON_PATH"
 
 source ~/.zshrc
 
-# 카메라 화면과 함께 터테이블 실행 (GUI 모드)
+# Minimal Turntable Controller 실행 스크립트
 
-echo "🎥 카메라 화면과 함께 터테이블 실행"
-echo "=================================="
-echo "📷 카메라 화면이 표시됩니다"
-echo "⏱️  6000초 동안 실행됩니다"
-echo "⚠️  터미널 창을 닫으면 프로그램이 종료됩니다!"
+echo "🎮 Minimal Turntable Controller 시작"
+echo "===================================="
+echo "📋 기능:"
+echo "  🚀 START: 즉시 CLI 모드 실행"
+echo "  🛑 STOP: 즉시 프로그램 종료"
+echo "  🔵 파란 불: 레코드 감지 준비 완료 표시"
+echo "  🎯 최소한의 인터페이스 (버튼만)"
 echo ""
 
-# GUI 모드로 터테이블 직접 실행 (카메라 화면 표시)
-"$PYTHON_PATH" turntable_gui_.py --duration 6000 --rpm 2.5 --transmission-interval 30 --roi-mode Circular --config config.json 
+# conda 환경 활성화
+conda activate garden
+
+# Minimal Controller 실행
+echo "🎮 Minimal Controller GUI를 시작합니다..."
+echo "💡 START/STOP 버튼과 파란 불 표시기가 나타납니다..."
+echo ""
+
+# GUI 실행
+$PYTHON_PATH minimal_controller.py 

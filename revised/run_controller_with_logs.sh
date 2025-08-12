@@ -1,6 +1,45 @@
 #!/bin/bash
 
 # Source conda initialization for this script
+
+# Dynamic Python path detection
+find_conda_python() {
+    local env_name="${1:-garden}"
+    
+    # Method 1: Try conda info
+    if command -v conda &> /dev/null; then
+        local conda_path=$(conda info --envs --json | grep -o '"[^"]*'${env_name}'[^"]*"' | head -1 | tr -d '"')
+        if [ -n "$conda_path" ] && [ -f "$conda_path/bin/python" ]; then
+            echo "$conda_path/bin/python"
+            return 0
+        fi
+    fi
+    
+    # Method 2: Try common paths
+    local common_paths=(
+        "$HOME/miniconda3/envs/$env_name/bin/python"
+        "$HOME/anaconda3/envs/$env_name/bin/python"
+        "/opt/homebrew/Caskroom/miniconda/base/envs/$env_name/bin/python"
+        "/opt/anaconda3/envs/$env_name/bin/python"
+        "/usr/local/anaconda3/envs/$env_name/bin/python"
+    )
+    
+    for path in "${common_paths[@]}"; do
+        if [ -f "$path" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+    
+    # Method 3: Fallback to current Python
+    echo "$(which python)"
+}
+
+# Get the Python path
+PYTHON_PATH=$(find_conda_python "garden")
+echo "🐍 Using Python: $PYTHON_PATH"
+
+
 source ~/.zshrc
 
 # Turntable Controller 실행 스크립트 (로그 저장 버전)
@@ -13,7 +52,7 @@ LOG_FILE="turntable_controller.log"
 echo "📄 로그 파일: $(pwd)/$LOG_FILE"
 
 # GUI가 제대로 나타나도록 로그 파일에 출력 저장
-nohup /opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python turntable_controller.py > "$LOG_FILE" 2>&1 &
+"$PYTHON_PATH" turntable_controller.py > "$LOG_FILE" 2>&1 &
 
 echo "GUI 창이 나타날 때까지 잠시 기다려주세요..."
 echo ""

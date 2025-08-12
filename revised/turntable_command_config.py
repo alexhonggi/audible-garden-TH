@@ -1,46 +1,129 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-터테이블 명령어 설정 파일
-이 파일을 수정하여 실행할 명령어의 플래그들을 변경할 수 있습니다.
+터테이블 명령어 설정 모듈
 """
 
-# 기본 스크립트 파일명 (같은 폴더 안에 있음)
+import sys
+import os
+
+# Add current directory to path for imports
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+# Add colored directory to path for utils
+colored_dir = os.path.join(os.path.dirname(script_dir), "colored")
+if colored_dir not in sys.path:
+    sys.path.insert(0, colored_dir)
+
+from utils.path_utils import get_python_path
+
+# 기본 설정
 SCRIPT_PATH = "turntable_gui_.py"
 
-# 명령어 플래그 설정
-COMMAND_FLAGS = {
-    "cli": False,          # CLI 모드 (False=GUI 모드로 카메라 화면 표시, True=CLI 모드)
-    "duration": 6000,      # 실행 시간 (초) - 약 1시간 40분
-    "rpm": 2.5,           # 회전 속도 (RPM)
-    "transmission_interval": 30,  # 전송 간격 (프레임)
-    "roi_mode": "Circular",       # ROI 모드 (Circular/Rectangular)
-    "record": False,              # 녹음 여부
-    "exit_on_record_complete": False,  # 녹음 완료 시 자동 종료
-    "config": "config.json"       # 설정 파일 경로
+DEFAULT_COMMAND = {
+    "duration": 6000,
+    "rpm": 2.5,
+    "transmission_interval": 30,
+    "roi_mode": "Circular",
+    "config": "config.json"
 }
 
-def get_command():
-    """설정된 플래그들을 바탕으로 실행할 명령어를 생성합니다."""
-    # conda 환경의 Python 사용
-    python_path = "/opt/homebrew/Caskroom/miniconda/base/envs/garden/bin/python"
-    cmd = [python_path, SCRIPT_PATH]
+def get_command_string(flags=None):
+    """
+    설정된 플래그들을 바탕으로 실행할 명령어 문자열을 생성합니다.
+    """
+    if flags is None:
+        flags = {}
     
-    for flag, value in COMMAND_FLAGS.items():
-        if value is True:
-            cmd.append(f"--{flag.replace('_', '-')}")
-        elif value is not False:  # False가 아닌 모든 값들
-            cmd.extend([f"--{flag.replace('_', '-')}", str(value)])
+    # 기본값과 플래그 병합
+    cmd_parts = ["python", SCRIPT_PATH, "--cli"]
+    
+    # 플래그에 따라 인자 추가
+    if flags.get("duration"):
+        cmd_parts.extend(["--duration", str(flags["duration"])])
+    else:
+        cmd_parts.extend(["--duration", str(DEFAULT_COMMAND["duration"])])
+    
+    if flags.get("rpm"):
+        cmd_parts.extend(["--rpm", str(flags["rpm"])])
+    else:
+        cmd_parts.extend(["--rpm", str(DEFAULT_COMMAND["rpm"])])
+    
+    if flags.get("transmission_interval"):
+        cmd_parts.extend(["--transmission-interval", str(flags["transmission_interval"])])
+    else:
+        cmd_parts.extend(["--transmission-interval", str(DEFAULT_COMMAND["transmission_interval"])])
+    
+    if flags.get("roi_mode"):
+        cmd_parts.extend(["--roi-mode", flags["roi_mode"]])
+    else:
+        cmd_parts.extend(["--roi-mode", DEFAULT_COMMAND["roi_mode"]])
+    
+    if flags.get("config"):
+        cmd_parts.extend(["--config", flags["config"]])
+    else:
+        cmd_parts.extend(["--config", DEFAULT_COMMAND["config"]])
+    
+    # 녹음 옵션
+    if flags.get("record", False):
+        cmd_parts.append("--record")
+    
+    if flags.get("exit_on_record_complete", False):
+        cmd_parts.append("--exit-on-record-complete")
+    
+    return " ".join(cmd_parts)
+
+def get_command(flags=None):
+    """
+    설정된 플래그들을 바탕으로 실행할 명령어를 생성합니다.
+    """
+    # Get the correct Python path dynamically
+    python_path = get_python_path("garden")
+    cmd = [python_path, SCRIPT_PATH, "--cli"]
+    
+    # 플래그에 따라 인자 추가
+    if flags is None:
+        flags = {}
+    
+    if flags.get("duration"):
+        cmd.extend(["--duration", str(flags["duration"])])
+    else:
+        cmd.extend(["--duration", str(DEFAULT_COMMAND["duration"])])
+    
+    if flags.get("rpm"):
+        cmd.extend(["--rpm", str(flags["rpm"])])
+    else:
+        cmd.extend(["--rpm", str(DEFAULT_COMMAND["rpm"])])
+    
+    if flags.get("transmission_interval"):
+        cmd.extend(["--transmission-interval", str(flags["transmission_interval"])])
+    else:
+        cmd.extend(["--transmission-interval", str(DEFAULT_COMMAND["transmission_interval"])])
+    
+    if flags.get("roi_mode"):
+        cmd.extend(["--roi-mode", flags["roi_mode"]])
+    else:
+        cmd.extend(["--roi-mode", DEFAULT_COMMAND["roi_mode"]])
+    
+    if flags.get("config"):
+        cmd.extend(["--config", flags["config"]])
+    else:
+        cmd.extend(["--config", DEFAULT_COMMAND["config"]])
+    
+    # 녹음 옵션
+    if flags.get("record", False):
+        cmd.append("--record")
+    
+    if flags.get("exit_on_record_complete", False):
+        cmd.append("--exit-on-record-complete")
     
     return cmd
 
-def get_command_string():
-    """사람이 읽기 쉬운 명령어 문자열을 반환합니다."""
-    cmd_list = get_command()
-    return " ".join(cmd_list)
-
 if __name__ == "__main__":
-    print("현재 설정된 명령어:")
+    # 테스트용
+    print("기본 명령어:")
     print(get_command_string())
-    print("\n실제 실행될 명령어 리스트:")
-    print(get_command()) 
+    
+    print("\n녹음 포함 명령어:")
+    print(get_command_string({"record": True, "exit_on_record_complete": True})) 

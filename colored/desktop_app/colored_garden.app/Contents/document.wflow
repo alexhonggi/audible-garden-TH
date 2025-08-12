@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMApplicationBuild</key>
+	<string>528</string>
+	<key>AMApplicationVersion</key>
+	<string>2.10</string>
+	<key>AMDocumentVersion</key>
+	<string>2</string>
+	<key>actions</key>
+	<array>
+		<dict>
+			<key>action</key>
+			<dict>
+				<key>AMAccepts</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Optional</key>
+					<true/>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>AMActionVersion</key>
+				<string>2.0.3</string>
+				<key>AMApplication</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>AMParameterProperties</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<dict/>
+					<key>CheckedForUserDefaultShell</key>
+					<dict/>
+					<key>inputMethod</key>
+					<dict/>
+					<key>shell</key>
+					<dict/>
+					<key>source</key>
+					<dict/>
+				</dict>
+				<key>AMProvides</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>ActionBundlePath</key>
+				<string>/System/Library/Automator/Run Shell Script.action</string>
+				<key>ActionName</key>
+				<string>셸 스크립트 실행</string>
+				<key>ActionParameters</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<string>#!/bin/bash
+
+# Source conda initialization for this script
+
+# Dynamic Python path detection
+find_conda_python() {
+    local env_name="${1:-garden}"
+    
+    # Method 1: Try conda info
+    if command -v conda &> /dev/null; then
+        local conda_path=$(conda info --envs --json | grep -o '"[^"]*'${env_name}'[^"]*"' | head -1 | tr -d '"')
+        if [ -n "$conda_path" ] && [ -f "$conda_path/bin/python" ]; then
+            echo "$conda_path/bin/python"
+            return 0
+        fi
+    fi
+    
+    # Method 2: Try common paths
+    local common_paths=(
+        "$HOME/miniconda3/envs/$env_name/bin/python"
+        "$HOME/anaconda3/envs/$env_name/bin/python"
+        "/opt/homebrew/Caskroom/miniconda/base/envs/$env_name/bin/python"
+        "/opt/anaconda3/envs/$env_name/bin/python"
+        "/usr/local/anaconda3/envs/$env_name/bin/python"
+    )
+    
+    for path in "${common_paths[@]}"; do
+        if [ -f "$path" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+    
+    # Method 3: Fallback to current Python
+    echo "$(which python)"
+}
+
+# Get the Python path
+PYTHON_PATH=$(find_conda_python "garden")
+echo "🐍 Using Python: $PYTHON_PATH"
+
+
+source ~/.zshrc
+
+# Minimal Turntable Controller 실행 스크립트
+
+echo "🎮 Minimal Turntable Controller 시작"
+echo "===================================="
+echo "📋 기능:"
+echo "  🚀 START: 즉시 CLI 모드 실행"
+echo "  🛑 STOP: 즉시 프로그램 종료"
+echo "  🔵 파란 불: 레코드 감지 준비 완료 표시"
+echo "  🎯 최소한의 인터페이스 (버튼만)"
+echo ""
+
+# conda 환경 활성화
+conda activate garden
+
+# Find the project directory
+PROJECT_DIR="$HOME/audible-garden-TH/colored"
+if [ ! -d "$PROJECT_DIR" ]; then
+    PROJECT_DIR="$HOME/project/audible-garden-TH/colored"
+fi
+if [ ! -d "$PROJECT_DIR" ]; then
+    PROJECT_DIR="/Users/$(whoami)/audible-garden-TH/colored"
+fi
+
+echo "Project directory: $PROJECT_DIR"
+cd "$PROJECT_DIR"
+
+# Minimal Controller 실행
+echo "🎮 Minimal Controller GUI를 시작합니다..."
+echo "💡 START/STOP 버튼과 파란 불 표시기가 나타납니다..."
+echo ""
+
+# GUI 실행
+$PYTHON_PATH minimal_controller.py 
+</string>
+					<key>CheckedForUserDefaultShell</key>
+					<true/>
+					<key>inputMethod</key>
+					<integer>0</integer>
+					<key>shell</key>
+					<string>/bin/zsh</string>
+					<key>source</key>
+					<string></string>
+				</dict>
+				<key>BundleIdentifier</key>
+				<string>com.apple.RunShellScript</string>
+				<key>CFBundleVersion</key>
+				<string>2.0.3</string>
+				<key>CanShowSelectedItemsWhenRun</key>
+				<false/>
+				<key>CanShowWhenRun</key>
+				<true/>
+				<key>Category</key>
+				<array>
+					<string>AMCategoryUtilities</string>
+				</array>
+				<key>Class Name</key>
+				<string>RunShellScriptAction</string>
+				<key>InputUUID</key>
+				<string>3E572FD8-F656-4281-A0FF-FF98ABD97D67</string>
+				<key>Keywords</key>
+				<array>
+					<string>셸</string>
+					<string>스크립트</string>
+					<string>명령</string>
+					<string>실행</string>
+					<string>Unix</string>
+				</array>
+				<key>OutputUUID</key>
+				<string>EC164F8B-6046-48B1-AF09-E884ADBDA52D</string>
+				<key>UUID</key>
+				<string>61952BBA-DBC4-4A1D-9B65-F77932A770ED</string>
+				<key>UnlocalizedApplications</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>arguments</key>
+				<dict>
+					<key>0</key>
+					<dict>
+						<key>default value</key>
+						<integer>0</integer>
+						<key>name</key>
+						<string>inputMethod</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>0</string>
+					</dict>
+					<key>1</key>
+					<dict>
+						<key>default value</key>
+						<false/>
+						<key>name</key>
+						<string>CheckedForUserDefaultShell</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>1</string>
+					</dict>
+					<key>2</key>
+					<dict>
+						<key>default value</key>
+						<string></string>
+						<key>name</key>
+						<string>source</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>2</string>
+					</dict>
+					<key>3</key>
+					<dict>
+						<key>default value</key>
+						<string></string>
+						<key>name</key>
+						<string>COMMAND_STRING</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>3</string>
+					</dict>
+					<key>4</key>
+					<dict>
+						<key>default value</key>
+						<string>/bin/sh</string>
+						<key>name</key>
+						<string>shell</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>4</string>
+					</dict>
+				</dict>
+				<key>conversionLabel</key>
+				<integer>0</integer>
+				<key>isViewVisible</key>
+				<integer>1</integer>
+				<key>location</key>
+				<string>309.000000:252.000000</string>
+				<key>nibPath</key>
+				<string>/System/Library/Automator/Run Shell Script.action/Contents/Resources/Base.lproj/main.nib</string>
+			</dict>
+			<key>isViewVisible</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>connectors</key>
+	<dict/>
+	<key>workflowMetaData</key>
+	<dict>
+		<key>workflowTypeIdentifier</key>
+		<string>com.apple.Automator.application</string>
+	</dict>
+</dict>
+</plist>

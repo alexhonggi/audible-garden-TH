@@ -1,27 +1,28 @@
 #!/bin/bash
 
-# 터테이블 컨트롤러 로그 실시간 모니터링
+# Source conda initialization for this script
+source ~/.zshrc
 
+# 로그 모니터링 스크립트
+echo "📊 Turntable Log Monitor"
+echo "========================"
+echo ""
+
+# 로그 파일 확인
 LOG_FILE="turntable_controller.log"
-
-echo "🔍 터테이블 컨트롤러 실시간 로그 모니터링"
-echo "========================================"
-echo "📄 로그 파일: $(pwd)/$LOG_FILE"
-echo "🎯 GUI에서 START 버튼을 눌러보세요!"
-echo "⚠️  Ctrl+C로 모니터링을 중지할 수 있습니다."
-echo ""
-
-# 기존 로그가 있다면 마지막 부분만 표시
 if [ -f "$LOG_FILE" ]; then
-    echo "📋 기존 로그 (마지막 5줄):"
-    echo "========================"
-    tail -n 5 "$LOG_FILE"
-    echo "========================"
+    echo "✅ 로그 파일 발견: $LOG_FILE"
+    echo "📈 실시간 로그 모니터링을 시작합니다..."
+    echo "💡 종료하려면 Ctrl+C를 누르세요"
     echo ""
-fi
-
-echo "🔄 실시간 로그 모니터링 시작..."
-echo ""
-
-# 실시간 로그 모니터링
-tail -f "$LOG_FILE" 2>/dev/null || echo "로그 파일이 아직 생성되지 않았습니다. START 버튼을 눌러주세요." 
+    
+    # 실시간 로그 모니터링
+    tail -f "$LOG_FILE"
+else
+    echo "❌ 로그 파일을 찾을 수 없습니다: $LOG_FILE"
+    echo ""
+    echo "💡 로그 파일이 생성되지 않았을 수 있습니다:"
+    echo "   1. 컨트롤러가 실행 중인지 확인하세요"
+    echo "   2. ./run_controller.sh를 실행해보세요"
+    echo ""
+fi 

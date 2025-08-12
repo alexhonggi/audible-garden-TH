@@ -1,0 +1,7 @@
+# 큰 오디오/프로젝트 파일들
+AG_KR/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
