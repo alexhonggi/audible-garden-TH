@@ -171,7 +171,7 @@ class SecureCameraManager:
         Open a camera device securely using modern AVFoundation APIs.
         
         Args:
-            device_id: Camera device ID (0 or 1 for local webcams)
+            device_id: Camera device ID (0 or 1 for local webcams) or file path string
             width: Desired frame width
             height: Desired frame height
             fps: Desired frame rate
@@ -179,6 +179,15 @@ class SecureCameraManager:
         Returns:
             SecureCamera object if successful, None otherwise
         """
+        # If device_id is a string, assume it's a video file path and bypass security checks
+        if isinstance(device_id, str):
+            if not os.path.exists(device_id):
+                 raise RuntimeError(f"Video file not found: {device_id}")
+            camera = SecureCamera(device_id, width, height, fps)
+            with self._lock:
+                self._cameras[device_id] = camera
+            return camera
+
         if device_id >= self._max_local_devices:
             raise ValueError(f"Device {device_id} is not allowed for security reasons")
             
@@ -234,7 +243,7 @@ class SecureCamera:
     Uses modern AVFoundation APIs to avoid deprecation warnings.
     """
     
-    def __init__(self, device_id: int, width: int = 640, height: int = 480, fps: int = 30):
+    def __init__(self, device_id, width: int = 640, height: int = 480, fps: int = 30):
         self.device_id = device_id
         self.width = width
         self.height = height
@@ -248,34 +257,49 @@ class SecureCamera:
     def _open_camera(self):
         """Open the camera with proper configuration using modern APIs."""
         try:
-            # Use AVFoundation backend with modern device type support
-            self._cap = cv2.VideoCapture(self.device_id, cv2.CAP_AVFOUNDATION)
-            
-            if not self._cap.isOpened():
-                # Fallback to default backend
+            if isinstance(self.device_id, str):
+                # Video file
                 self._cap = cv2.VideoCapture(self.device_id)
+                if not self._cap.isOpened():
+                    raise RuntimeError(f"Failed to open video file {self.device_id}")
                 
-            if not self._cap.isOpened():
-                raise RuntimeError(f"Failed to open camera device {self.device_id}")
-            
-            # Configure camera properties
-            self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-            self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-            self._cap.set(cv2.CAP_PROP_FPS, self.fps)
-            self._cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize latency
+                # For video files, we might not want to set FPS/Width/Height the same way
+                # but we'll try to set what we can or just read what it is
+                
+            else:
+                # Webcam
+                # Use AVFoundation backend with modern device type support
+                self._cap = cv2.VideoCapture(self.device_id, cv2.CAP_AVFOUNDATION)
+                
+                if not self._cap.isOpened():
+                    # Fallback to default backend
+                    self._cap = cv2.VideoCapture(self.device_id)
+                    
+                if not self._cap.isOpened():
+                    raise RuntimeError(f"Failed to open camera device {self.device_id}")
+                
+                # Configure camera properties
+                self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
+                self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
+                self._cap.set(cv2.CAP_PROP_FPS, self.fps)
+                self._cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize latency
             
             # Test frame capture
             ret, test_frame = self._cap.read()
             if not ret or test_frame is None:
-                raise RuntimeError(f"Camera device {self.device_id} is not responding")
-                
+                raise RuntimeError(f"Device {self.device_id} is not responding")
+            
+            # Reset to beginning if it's a file
+            if isinstance(self.device_id, str):
+                self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
             self._is_open = True
             
         except Exception as e:
             if self._cap:
                 self._cap.release()
                 self._cap = None
-            raise RuntimeError(f"Failed to initialize camera {self.device_id}: {str(e)}")
+            raise RuntimeError(f"Failed to initialize device {self.device_id}: {str(e)}")
     
     def read_frame(self) -> Tuple[bool, Optional[np.ndarray]]:
         """
@@ -293,11 +317,17 @@ class SecureCamera:
             
         try:
             ret, frame = self._cap.read()
+            
+            # If end of video file, loop back to start
+            if not ret and isinstance(self.device_id, str):
+                self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                ret, frame = self._cap.read()
+            
             if not ret or frame is None:
                 return False, None
             return True, frame
         except Exception as e:
-            print(f"Error reading frame from camera {self.device_id}: {e}")
+            print(f"Error reading frame from device {self.device_id}: {e}")
             return False, None
         finally:
             self._lock.release()

@@ -5,7 +5,7 @@ import time # 전송 간격 제어를 위해 추가
 import argparse # CLI 모드를 위해 추가
 import cv2 as cv
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSlider, QComboBox, QGroupBox, QFileDialog, QCheckBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSlider, QComboBox, QGroupBox, QFileDialog, QCheckBox, QFrame
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QTimer, QEvent
 
@@ -21,12 +21,10 @@ if script_dir not in sys.path:
 from utils.camera_utils import open_camera, close_camera, get_camera_name
 from utils.rotation_utils import RotationDetector
 from fixed_turntable import (
-    TurntableScoreRecorder, 
-    calculate_timing_parameters, 
-    draw_overlay_info, 
     detect_center_spindle, 
     extract_radial_scanline
 )
+from utils.path_utils import get_resource_path
 # generate_midi_from_roi를 새로 임포트하고, 오래된 것들은 제거
 from utils.audio_utils_simple import generate_midi_from_roi
 from utils.osc_utils import init_client, send_midi, stop_all_sounds
@@ -44,13 +42,14 @@ class CameraThread(QThread):
     camera_error_signal = pyqtSignal(str)
     # finished_recording = pyqtSignal() # <-- 자동 종료를 위한 새 시그널 (주석 처리)
 
-    def __init__(self, camera_index=0, resolution=(1280, 720)):
+    def __init__(self, camera_index=0, resolution=(1280, 720), playback_speed=1.0):
         super().__init__()
         self.camera_index = camera_index
         self.resolution = resolution
+        self.playback_speed = playback_speed
         self.running = True
         self.camera = None
-        self.fps = 6.0
+        self.fps = 30.0 # Default fallback
         self.actual_res = (0, 0)
 
     def run(self):
@@ -75,7 +74,14 @@ class CameraThread(QThread):
             self.running = False
             return
 
+        # Calculate target frame interval based on FPS and speed
+        # If FPS is not detected correctly (e.g. 0), default to 30
+        safe_fps = self.fps if self.fps > 0 else 30.0
+        target_interval = 1.0 / (safe_fps * self.playback_speed)
+        
         while self.running and self.camera and self.camera.is_open():
+            start_time = time.time()
+            
             ret, frame = self.camera.read_frame()
             if ret and frame is not None:
                 # 90도 회전
@@ -84,6 +90,13 @@ class CameraThread(QThread):
             else:
                 # 프레임 읽기 실패 시 잠시 대기
                 QThread.msleep(10)
+                continue
+
+            # Maintain frame rate
+            elapsed = time.time() - start_time
+            wait_time = target_interval - elapsed
+            if wait_time > 0:
+                QThread.msleep(int(wait_time * 1000))
 
     def stop(self):
         """스레드 종료 함수"""
@@ -99,16 +112,19 @@ class TurntableGUI(QMainWindow):
     """
     메인 GUI 애플리케이션 클래스
     """
-    def __init__(self):
+    def __init__(self, input_source=0, playback_speed=1.0):
         super().__init__()
+        self.input_source = input_source
+        self.playback_speed = playback_speed
         self.setWindowTitle("Audible Garden - Turntable GUI (Config-Managed)")
         self.setGeometry(100, 100, 1200, 800)
 
         # --- 설정 파일 로드 ---
         try:
-            with open('config.json', 'r') as f:
+            config_path = get_resource_path('config.json')
+            with open(config_path, 'r') as f:
                 self.config = json.load(f)
-            print("✅ config.json 로드 완료.")
+            print(f"✅ config.json 로드 완료: {config_path}")
         except FileNotFoundError:
             print("❌ CRITICAL: config.json 파일을 찾을 수 없습니다. 기본값으로 실행됩니다.")
             self.config = {} # 기본값으로 비어있는 config 사용
@@ -124,7 +140,7 @@ class TurntableGUI(QMainWindow):
         self.main_layout = QHBoxLayout(self.central_widget)
 
         # 카메라 화면 표시부
-        self.video_label = QLabel("카메라를 초기화하고 있습니다...")
+        self.video_label = QLabel(f"카메라를 초기화하고 있습니다... (속도: {self.playback_speed}x)")
         self.video_label.setAlignment(Qt.AlignCenter)
         self.video_label.setMinimumSize(800, 600)
         self.video_label.setStyleSheet("border: 1px solid black; background-color: #333;")
@@ -144,7 +160,7 @@ class TurntableGUI(QMainWindow):
         self.main_layout.addWidget(self.controls_widget)
 
         # 카메라 스레드 시작
-        self.camera_thread = CameraThread()
+        self.camera_thread = CameraThread(camera_index=self.input_source, playback_speed=self.playback_speed)
         self.camera_thread.frame_signal.connect(self.update_frame)
         self.camera_thread.camera_ready_signal.connect(self.on_camera_ready)
         self.camera_thread.camera_error_signal.connect(self.on_camera_error)
@@ -194,14 +210,37 @@ class TurntableGUI(QMainWindow):
         self.start_button = QPushButton("시작")
         self.stop_button = QPushButton("정지")
         self.stop_button.setEnabled(False)
+        
+        # 비디오 파일 불러오기 버튼 추가
+        self.open_video_button = QPushButton("비디오 열기")
+        self.open_video_button.clicked.connect(self.open_video_file)
+        
+        run_layout.addWidget(self.open_video_button)
         run_layout.addWidget(self.start_button)
         run_layout.addWidget(self.stop_button)
         run_group.setLayout(run_layout)
         self.controls_layout.addWidget(run_group)
 
-        # 2. RPM 설정 그룹
-        rpm_group = QGroupBox("RPM 설정")
+        # 2. RPM 및 재생 속도 설정 그룹
+        rpm_group = QGroupBox("RPM 및 재생 속도")
         rpm_layout = QVBoxLayout()
+        
+        # 재생 속도 슬라이더
+        self.speed_slider = QSlider(Qt.Horizontal)
+        self.speed_slider.setRange(1, 20) # 0.1 ~ 2.0 배속
+        self.speed_slider.setValue(int(self.playback_speed * 10))
+        self.speed_label = QLabel(f"재생 속도: {self.playback_speed:.1f}x")
+        self.speed_slider.valueChanged.connect(self.update_playback_speed)
+        
+        rpm_layout.addWidget(self.speed_label)
+        rpm_layout.addWidget(self.speed_slider)
+        
+        # 구분선
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        rpm_layout.addWidget(line)
+        
         self.rpm_slider = QSlider(Qt.Horizontal)
         self.rpm_slider.setRange(10, 100) # 1.0 ~ 10.0 RPM
         self.rpm_slider.setValue(25) # 기본 2.5 RPM
@@ -299,6 +338,43 @@ class TurntableGUI(QMainWindow):
         self.playback_button.clicked.connect(self.toggle_playback_mode)
         self.manual_roi_button.toggled.connect(self.toggle_roi_setting)
         self.reset_baseline_button.clicked.connect(self.reset_record_baseline)
+        
+    def open_video_file(self):
+        """비디오 파일 열기 다이얼로그"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "비디오 파일 선택", "", "Video Files (*.mov *.mp4 *.avi *.mkv);;All Files (*)"
+        )
+        if file_path:
+            print(f"📂 비디오 파일 선택됨: {file_path}")
+            self.input_source = file_path
+            
+            # 기존 스레드 중지 및 재시작
+            if self.camera_thread and self.camera_thread.isRunning():
+                self.camera_thread.stop()
+                self.camera_thread.wait()
+            
+            self.camera_thread = CameraThread(camera_index=self.input_source, playback_speed=self.playback_speed)
+            self.camera_thread.frame_signal.connect(self.update_frame)
+            self.camera_thread.camera_ready_signal.connect(self.on_camera_ready)
+            self.camera_thread.camera_error_signal.connect(self.on_camera_error)
+            self.camera_thread.start()
+            
+            # ROI 모드를 자동으로 Circular로 변경 (비디오 로드 시 보통 원판 영상이므로)
+            self.roi_mode_combo.setCurrentText("Circular")
+
+    def update_playback_speed(self, value):
+        """재생 속도 슬라이더 변경 시 호출"""
+        speed = value / 10.0
+        self.playback_speed = speed
+        self.speed_label.setText(f"재생 속도: {speed:.1f}x")
+        
+        if self.camera_thread:
+            self.camera_thread.playback_speed = speed
+            # 즉시 반영을 위해 interval 재계산 로직이 필요하지만, 
+            # CameraThread의 loop에서 매 프레임 interval을 interval 변수를 참조하게 하면 됨.
+            # 지금 구조에서는 CameraThread.run() 루프 내에서 playback_speed를 매번 확인하므로
+            # 변수만 바꿔주면 다음 프레임부터 적용됨.
+            print(f"⏩ 재생 속도 변경됨: {speed:.1f}x")
 
     def reset_record_baseline(self):
         """레코드 감지 기준 데이터 재설정"""
@@ -892,9 +968,9 @@ def run_cli(args):
     print("✨ 작업 완료.")
 
 
-def main_gui():
+def main_gui(input_source=0, playback_speed=1.0):
     app = QApplication(sys.argv)
-    gui = TurntableGUI()
+    gui = TurntableGUI(input_source=input_source, playback_speed=playback_speed)
     gui.show()
     sys.exit(app.exec_())
 
@@ -915,13 +991,21 @@ if __name__ == "__main__":
     parser.add_argument('--record', action='store_true', help='[CLI] 첫 바퀴를 녹음하여 악보 파일로 저장합니다.')
     parser.add_argument('--exit-on-record-complete', action='store_true', help='[CLI] 악보 녹음이 완료되면 프로그램을 자동으로 종료합니다.')
 
+    parser.add_argument('--input', type=str, default="0", help='[GUI/CLI] 카메라 인덱스(0, 1) 또는 비디오 파일 경로를 지정합니다.')
+    parser.add_argument('--speed', type=float, default=1.0, help='[GUI] 비디오 재생 속도 배율 (예: 0.5 = 0.5배속, 1.0 = 정상 속도)')
+
     args = parser.parse_args()
+
+    # Process input argument (convert to int if digits, else keep as string)
+    input_source = args.input
+    if input_source.isdigit():
+        input_source = int(input_source)
 
     # 인자에 따라 GUI 또는 CLI 모드 실행
     if args.cli:
         run_cli(args)
     else:
         # GUI 관련 인자가 들어왔을 경우 무시하고 GUI 실행
-        if len(sys.argv) > 1:
+        if len(sys.argv) > 1 and not args.input and not args.speed:
             print("ℹ️ GUI 모드로 실행합니다. CLI 관련 인자는 무시됩니다.")
-        main_gui()
+        main_gui(input_source=input_source, playback_speed=args.speed)
